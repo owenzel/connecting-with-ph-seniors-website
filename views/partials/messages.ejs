@@ -1,0 +1,25 @@
+<% if (typeof errors != 'undefined') { %>
+    <div class="collection">
+        <% errors.forEach(function(error) { %>
+            <a href="#!" class="collection-item black-text red accent-1"><%= error.msg %></a>
+        <% }); %>
+    </div>
+<% } %>
+
+<% if (success_msg != '') { %>
+    <div class="collection">
+        <a href="#!" class="collection-item black-text green lighten-4"><%= success_msg %></a>
+    </div>
+<% } %>
+
+<% if (error_msg != '') { %>
+    <div class="collection">
+        <a href="#!" class="collection-item black-text red accent-1"><%= error_msg %></a>
+    </div>
+<% } %>
+
+<% if (error != '') { %>
+    <div class="collection">
+        <a href="#!" class="collection-item black-text red accent-1"><%= error %></a>
+    </div>
+<% } %>

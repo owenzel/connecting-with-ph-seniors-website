@@ -1,0 +1,18 @@
+# Ignore the node_modules directory
+node_modules/
+npm-debug.log
+
+# Ignore files containing environment variables
+config.env
+.env
+
+# Ignore build files
+build
+
+# Ignore hidden system files
+.DS_Store
+
+# Ignore IDE specific files
+.idea/
+.vscode/
+*.sw*
