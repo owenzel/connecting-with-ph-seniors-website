@@ -1,0 +1,25 @@
+<div class="container">
+    <div class="row">
+        <div class="col s12 m8">
+            <h3><%= activity.title %>
+                <small><%- editIcon(activity.user, user._id, activity._id, false) %></small>
+            </h3>
+            <div class="card activity">
+                <div class="card-content">
+                    <span class="card-title"><%= formatDate(activity.date, 'MMMM Do YYYY, h:mm a') %></span>
+                    <%= stripTags(activity.body) %>
+                </div>
+            </div>
+        </div>
+        <div class="col s12 m4">
+            <div class="card center-align">
+                <div class="card-content">
+                    <span class="card-title"><%= activity.user.name %></span>
+                </div>
+                <div class="card-action">
+                    <a href="/activities/user/<%= activity.user.name %>">More From <%= activity.user.name %></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

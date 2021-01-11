@@ -5,7 +5,7 @@ const passport = require('passport');
 
 // Load User model
 const User = require('./../models/User');
-const { forwardAuthenticated } = require('./../config/auth');
+const { forwardAuthenticated } = require('../middleware/auth');
 
 // @desc    Register page
 // @route   GET /register
@@ -19,7 +19,7 @@ router.get('/login', forwardAuthenticated, (req, res) => {
     res.render('login');
 });
 
-// @desc    Register form submission
+// @desc    Process register form
 // @route   POST /register
 router.post('/register', (req, res) => {
     const { name, username, email, password, password2 } = req.body;
@@ -92,7 +92,7 @@ router.post('/register', (req, res) => {
     }
 });
 
-// @desc    Login form submission
+// @desc    Process login form
 // @route   POST /login
 router.post('/login', (req, res, next) => {
     passport.authenticate('local', {
@@ -102,7 +102,7 @@ router.post('/login', (req, res, next) => {
     })(req, res, next);
 });
 
-// @desc    Logout button
+// @desc    Process logout
 // @route   POST /login
 router.get('/logout', (req, res) => {
     req.logout();
