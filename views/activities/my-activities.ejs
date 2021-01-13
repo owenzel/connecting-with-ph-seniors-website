@@ -1,9 +1,12 @@
 <%- include ("./../partials/messages"); %>
 
 <div class="container">
-    <h1>My Activities</h1>
+    <h1><%= user.name %>'s Activities</h1>
     <div class="section">
-        <p>Welcome, <%= user.name %>! View upcoming activities <a href="/">HERE</a>. Create an activity <a href="/activities/create">HERE</a>.</p>
+        <div class="row">
+            <%- include ("./../partials/add_btn"); %>
+            <%- include ("./../partials/home_btn"); %>
+        </div>
     </div>
 
     <div class="divider"></div>
@@ -17,7 +20,7 @@
                         <th>Title</th>
                         <th>Date</th>
                         <th>Status</th>
-                        <th>Leader Name</th>
+                        <th>Leader's Name</th>
                         <th>RSVPs</th>
                         <th><!--Edit and delete buttons--></th>
                     </tr>
@@ -64,7 +67,7 @@
                         <th>Title</th>
                         <th>Date</th>
                         <th>Status</th>
-                        <th>Leader Name</th>
+                        <th>Leader's Name</th>
                         <th>RSVPs</th>
                     </tr>
                 </thead>
@@ -111,8 +114,8 @@
                             <td><span class="dash-status"><%= activity.status %></span></td>
                             <td><%= activity.leaderName %></td>
                             <td>
-                                <form action="/activities/<%= activity._id %>/cancel" method="POST">
-                                    <input type="hidden" name="_method" value="PUT">
+                                <form action="/activities/<%= activity._id %>/rsvp" method="POST">
+                                    <input type="hidden" name="_method" value="DELETE">
                                     <button type="submit" class="btn red">CANCEL RSVP</button>
                                 </form>
                             </td>

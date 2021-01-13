@@ -23,6 +23,12 @@ router.get('/', async (req, res) => {
     }
 });
 
+// @desc    Show questions page (for users to send questions to admin)
+// @route   GET /
+router.get('/questions', async (req, res) => {
+    res.render('questions');
+});
+
 // @desc    Show activities sign up page
 // @route   GET /sign-up
 router.get('/sign-up', async (req, res) => {
@@ -102,14 +108,13 @@ router.post('/sign-up', async (req, res) => {
                 const savedActivity = await Activity.findOne({ _id: activity }).lean();
                 const found = savedActivity.rsvps.find(rsvp => rsvp.email == email);
 
-                // If the user hasn't already sign up for this activity or if they previously made this false, save a new rsvp to this activity
-                if (!found || !found.going) {
+                // If the user hasn't already signed up for this activity, save a new rsvp to this activity
+                if (!found) {
                     try {
                         const newRsvp = {
                             name,
                             email,
-                            phone,
-                            going: true
+                            phone
                         };
                         await Activity.updateOne({ _id: activity }, { $push: { rsvps: newRsvp } });
                     } catch (e) {

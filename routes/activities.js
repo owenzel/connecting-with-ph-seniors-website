@@ -143,14 +143,9 @@ router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
             req.flash('error_msg', "You do not have permission to edit this activity.");
             res.redirect('/');
         } else {
-            const title = activity.title;
-            const goingRsvps = activity.rsvps.map(rsvp => {
-                if (rsvp.going) return rsvp;
-            });
-
             res.render('activities/rsvps', {
-                title,
-                goingRsvps
+                title: activity.title,
+                rsvps: activity.rsvps
             });
         }
     } catch (e) {
@@ -162,7 +157,7 @@ router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
 
 // @desc    Cancel RSVP to activity
 // @route   PUT /activities/:id/cancel
-router.put('/:id/cancel', ensureAuthenticated, async (req, res) => {
+router.delete('/:id/rsvp', ensureAuthenticated, async (req, res) => {
     try {
         let activity = await Activity.findById(req.params.id).lean();
 
@@ -174,8 +169,8 @@ router.put('/:id/cancel', ensureAuthenticated, async (req, res) => {
 
         // If the requested does exist, find this user's RSVP and change it to not going (if the RSVP exists)
         if (activity.rsvps.find(rsvp => rsvp.email == req.user.email)) {
-            await Activity.findOneAndUpdate({ "_id": req.params.id, "rsvps.email": req.user.email },
-                {$set: {"rsvps.$.going": false}}
+            await Activity.findOneAndUpdate({ "_id": req.params.id },
+                {$pull: {rsvps: {email: req.user}}}
             );
         }
 

@@ -1,6 +1,6 @@
 <div class="container">
     <h3><%= title %> RSVP(s)</h3>
-    <% if (goingRsvps.length > 0) { %>
+    <% if (rsvps.length > 0) { %>
         <table class="striped">
             <thead>
                 <tr>
@@ -10,7 +10,7 @@
                 </tr>
             </thead>
             <tbody>
-                <% goingRsvps.forEach(function(rsvp) { %>
+                <% rsvps.forEach(function(rsvp) { %>
                     <tr>
                         <td><%= rsvp.name %></td>
                         <td><%= rsvp.email %></td>
@@ -26,7 +26,7 @@
     <div class="divider"></div>
 
     <div class="section">
-        <a href="/" class="btn cyan">Back to My Activities</a>
-        <a href="/" class="btn orange">View Other Activities</a>
+        <a href="/" class="btn cyan"><i class="fas fa-backward"></i> Go Back to My Activities</a>
+        <%- include ("./../partials/home_btn"); %>
     </div>
 </div>
