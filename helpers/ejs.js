@@ -32,9 +32,9 @@ module.exports = {
     editIcon: function (activityCreatorUser, loggedUser, activityId, floating = true) {
         if (activityCreatorUser._id.toString() == loggedUser._id.toString()) {
             if (floating) {
-                return `<a href="/activities/edit/${activityId}" class="btn-floating halfway-fab blue"><i class="fas fa-edit fa-small"></i></a>`;
+                return `<a href="/activities/${activityId}/edit" class="btn-floating halfway-fab blue"><i class="fas fa-edit fa-small"></i></a>`;
             } else {
-                return `<a href="/activities/edit/${activityId}"><i class="fas fa-edit"></i></a>`;
+                return `<a href="/activities/${activityId}/edit"><i class="fas fa-edit"></i></a>`;
             }
         } else {
             return '';

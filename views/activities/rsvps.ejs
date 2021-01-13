@@ -1,0 +1,32 @@
+<div class="container">
+    <h3><%= title %> RSVP(s)</h3>
+    <% if (goingRsvps.length > 0) { %>
+        <table class="striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone Number</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% goingRsvps.forEach(function(rsvp) { %>
+                    <tr>
+                        <td><%= rsvp.name %></td>
+                        <td><%= rsvp.email %></td>
+                        <td><%= rsvp.phone %></td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    <% } else { %>
+        <p>There are no RSVPs for this activity yet!</p>
+    <% } %>
+
+    <div class="divider"></div>
+
+    <div class="section">
+        <a href="/" class="btn cyan">Back to My Activities</a>
+        <a href="/" class="btn orange">View Other Activities</a>
+    </div>
+</div>

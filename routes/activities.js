@@ -126,10 +126,71 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// @desc    Show single activity's RSVPs
+// @route   GET /activities/:id/rsvps
+router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
+    try {
+        const activity = await Activity.findById(req.params.id).lean();
+        
+        // If the requested activity does not exist, redirect them and throw an error
+        if (!activity) {
+            req.flash('error_msg', "This activity could not be found.");
+            res.redirect('/my-activities');
+        }
+
+        // If a user is attempting to view the RSVPs for an activity that do not have access to, redirect them
+        if (activity.creatorUser != req.user.id || activity.leaderUser != req.user.id) {
+            req.flash('error_msg', "You do not have permission to edit this activity.");
+            res.redirect('/');
+        } else {
+            const title = activity.title;
+            const goingRsvps = activity.rsvps.map(rsvp => {
+                if (rsvp.going) return rsvp;
+            });
+
+            res.render('activities/rsvps', {
+                title,
+                goingRsvps
+            });
+        }
+    } catch (e) {
+        console.log(e);
+        req.flash('error_msg', "This activity could not be found.");
+        res.redirect('/');
+    }
+});
+
+// @desc    Cancel RSVP to activity
+// @route   PUT /activities/:id/cancel
+router.put('/:id/cancel', ensureAuthenticated, async (req, res) => {
+    try {
+        let activity = await Activity.findById(req.params.id).lean();
+
+        // If the requested activity does not exist, redirect the user with an error message
+        if (!activity) {
+            req.flash('error_msg', "This activity could not be found.");
+            res.redirect('/');
+        }
+
+        // If the requested does exist, find this user's RSVP and change it to not going (if the RSVP exists)
+        if (activity.rsvps.find(rsvp => rsvp.email == req.user.email)) {
+            await Activity.findOneAndUpdate({ "_id": req.params.id, "rsvps.email": req.user.email },
+                {$set: {"rsvps.$.going": false}}
+            );
+        }
+
+        req.flash('success_msg', 'You have successfully canceled your RSVP.');
+        res.redirect('/activities/my-activities');
+    } catch (e) {
+        console.log(e);
+        res.redirect('/activities/my-activities');
+    }
+});
+
 
 // @desc    Edit activity page
 // @route   GET /activities/edit/:id
-router.get('/edit/:id', ensureAuthenticated, async (req, res) => {
+router.get('/:id/edit', ensureAuthenticated, async (req, res) => {
     try {
         const activity = await Activity.findOne({
             _id: req.params.id
@@ -142,7 +203,8 @@ router.get('/edit/:id', ensureAuthenticated, async (req, res) => {
     
         // If a user is attempting to edit an activity that do not have access to, redirect them
         if (activity.creatorUser != req.user.id) {
-            res.redirect('/activities');
+            req.flash('error_msg', "You do not have permission to edit this activity.");
+            res.redirect('/');
         } else {
             res.render('activities/edit', {
                 activity,
@@ -168,13 +230,15 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
         }
 
         if (activity.creatorUser != req.user.id) {
-            res.redirect('/activities');
+            req.flash('error_msg', "You do not have permission to edit this activity.");
+            res.redirect('/');
         } else {
             activity = await Activity.findOneAndUpdate({ _id: req.params.id }, req.body, {
                 new: true,
                 runValidators: true
             });
 
+            req.flash('success_msg', 'The activity was successfully edited.');
             res.redirect('activities/my-activities');
         }
     } catch (e) {
