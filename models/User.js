@@ -11,9 +11,17 @@ const UserSchema = new mongoose.Schema({
     },
     email: {
         type: String,
+        default: ""
+    },
+    phone: {
+        type: String,
         required: false
     },
     password: {
+        type: String,
+        required: true
+    },
+    signature: {
         type: String,
         required: true
     }

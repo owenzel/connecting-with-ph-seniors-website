@@ -2,63 +2,127 @@ const express = require('express');
 const router = express.Router();
 const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
 
+const User = require('./../models/User');
 const Activity = require('./../models/Activities');
 
-// @desc    Add activity page
-// @route   GET /activities/add
-router.get('/add', ensureAuthenticated, (req, res) => {
-    res.render('activities/add');
-});
-
-// @desc    Process add form
-// @route   POST /activities
-router.post('/', ensureAuthenticated, async (req, res) => {
+// @desc    Show My Activities page
+// @route   GET /activities/my-activities
+router.get('/my-activities', ensureAuthenticated, async (req, res) => {
     try {
-        req.body.user = req.user.id;
-        await Activity.create(req.body);
-        res.redirect('/dashboard');
-    } catch (e) {
-        console.log(e);
-        res.render('error/500');
-    }
-});
+        const activitiesCreated = await Activity.find({ creatorUser: req.user.id }).populate('leaderUser').populate('creatorUser').lean();
+        const activitiesLeading = await Activity.find({ leaderUser: req.user.id }).populate('leaderUser').populate('creatorUser').lean();
+        const activitiesAttending = [];
 
-// @desc    All activities page
-// @route   GET /activities
-router.get('/', ensureAuthenticated, async (req, res) => {
-    try {
-        const activities = await Activity.find({ status: 'public' })
-            .populate('user')
-            .sort({ createdAt: 'desc' })
-            .lean();
-        
-        res.render('activities/index', {
-            activities
+        // Find activities that the logged in user RSVP'd they're going to
+        const activities = await Activity.find({ }).populate('leaderUser').populate('creatorUser').lean();
+        activities.forEach(activity => {
+            const found = activity.rsvps.find(rsvp => rsvp.email == req.user.email);
+            if (found) {
+                activitiesAttending.push(activity);
+            }
+        });
+
+        res.render('activities/my-activities', {
+            user: req.user,
+            activitiesCreated,
+            activitiesLeading,
+            activitiesAttending
         });
     } catch (e) {
         console.log(e);
-        res.render('error/500');
+        req.flash('error_msg', "We're sorry. Something went wrong.");
+        res.redirect('/');
     }
 });
 
-// @desc    Single activity page
+// @desc    Show create activity page
+// @route   GET /activities/create
+router.get('/create', ensureAuthenticated, (req, res) => {
+    res.render('activities/create');
+});
+
+// @desc    Process create activity form
+// @route   POST /activities/create
+router.post('/create', ensureAuthenticated, async (req, res) => {
+    const { title, date, time, leaderName, leaderUsername, status, body } = req.body;
+    let errors = [];
+
+    // Check required fields
+    if (!title || !date || !time || !leaderName || !status || !body) {
+        errors.push({ msg: 'Please fill in all fields (Activity Leader Username is optional but strongly recommended if they have an account).' });
+    }
+    
+    // If a username for an activity leader was entered, find them
+    let leaderUser = null;
+    
+    if (leaderUsername) {
+        try {
+            leaderUser = await User.findOne({ username: leaderUsername }).lean();
+            console.log(leaderUser);
+
+            if (!leaderUser) {
+                console.log('no leader user');
+                errors.push({ msg: 'The Activity Leader Username does not exist. Please ensure this is the correct username or leave the field blank if this person does not have an account.' });
+            }
+        } catch (e) {
+            console.log(e);
+            req.flash('error_msg', "We're sorry. Something went wrong.");
+            res.redirect('/');
+        }
+    }
+
+    // If there are errors, re-render the page with the errors and entered information passed in
+    if (errors.length > 0) {
+        res.render('activities/create', {
+            errors
+        });
+    } else { // Validation passed
+        // Create and save the new activity
+        const newActivity = new Activity({
+            title,
+            date: new Date(`${date}T${time}`),
+            leaderName,
+            leaderUser: leaderUsername ? leaderUser._id : null,
+            status,
+            body,
+            creatorUser: req.user.id
+        });
+
+        newActivity.save()
+            .then(activity => {
+                // Redirect to the my activities page with a success message (stored in the session)
+                req.flash('success_msg', 'The activity was successfully created.');
+                res.redirect('/activities/my-activities');
+            })
+            .catch(e => {
+                console.log(e);
+                req.flash('error_msg', "We're sorry. Something went wrong.");
+                res.redirect('/');
+            });
+    }
+});
+
+// @desc    Show single activity page
 // @route   GET /activities/:id
-router.get('/:id', ensureAuthenticated, async (req, res) => {
+router.get('/:id', async (req, res) => {
     try {
         let activity = await Activity.findById(req.params.id)
-            .populate('user')
+            .populate('leaderUser')
+            .populate('creatorUser')
             .lean();
         
         if (!activity) {
-            return res.render('error/404');
+            req.flash('error_msg', "This activity could not be found.");
+            res.redirect('/');
         }
 
         res.render('activities/show', {
             activity
         });
     } catch (e) {
-        console.log(error);
-        res.render('error/404');
+        console.log(e);
+        req.flash('error_msg', "This activity could not be found.");
+        res.redirect('/');
     }
 });
 
@@ -72,11 +136,12 @@ router.get('/edit/:id', ensureAuthenticated, async (req, res) => {
         }).lean();
     
         if (!activity) {
-            return res.render('error/404');
+            req.flash('error_msg', "This activity could not be found.");
+            res.redirect('/');
         }
     
         // If a user is attempting to edit an activity that do not have access to, redirect them
-        if (activity.user != req.user.id) {
+        if (activity.creatorUser != req.user.id) {
             res.redirect('/activities');
         } else {
             res.render('activities/edit', {
@@ -85,7 +150,8 @@ router.get('/edit/:id', ensureAuthenticated, async (req, res) => {
         }
     } catch (e) {
         console.log(e);
-        return res.render('error/505');
+        req.flash('error_msg', "We're sorry. Something went wrong.");
+        res.redirect('/');
     }
     
 });
@@ -97,10 +163,11 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
         let activity = await Activity.findById(req.params.id).lean();
 
         if (!activity) {
-            return res.render('error/404');
+            req.flash('error_msg', "This activity could not be found.");
+            res.redirect('/');
         }
 
-        if (activity.user != req.user.id) {
+        if (activity.creatorUser != req.user.id) {
             res.redirect('/activities');
         } else {
             activity = await Activity.findOneAndUpdate({ _id: req.params.id }, req.body, {
@@ -108,11 +175,11 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
                 runValidators: true
             });
 
-            res.redirect('/dashboard');
+            res.redirect('activities/my-activities');
         }
     } catch (e) {
         console.log(e);
-        res.redirect('/dashboard');
+        res.redirect('activities/my-activities');
     }
 });
 
@@ -121,30 +188,11 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
 router.delete('/:id', ensureAuthenticated, async (req, res) => {
     try {
         await Activity.deleteOne({ _id: req.params.id });
-        res.redirect('/dashboard');
+        res.redirect('activities/my-activities');
     } catch (e) {
         console.log(e);
-        return res.render('error/500');
-    }
-});
-
-// @desc    User activities
-// @route   GET /activities/user/:userId
-router.get('/user/:userId', ensureAuthenticated, async (req, res) => {
-    try {
-        const activities = await Activity.find({
-            user: req.params.userId,
-            status: 'public'
-        })
-            .populate('user')
-            .lean();
-        
-        res.render('activities/index', {
-            activities
-        })
-    } catch (e) {
-        console.log(e);
-        res.render('error/500');
+        req.flash('error_msg', "We're sorry. Something went wrong.");
+        res.redirect('/');
     }
 });
 

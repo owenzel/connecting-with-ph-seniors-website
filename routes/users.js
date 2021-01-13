@@ -5,29 +5,29 @@ const passport = require('passport');
 
 // Load User model
 const User = require('./../models/User');
-const { forwardAuthenticated } = require('../middleware/auth');
+const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
 
-// @desc    Register page
-// @route   GET /register
+// @desc    Show register page
+// @route   GET /users/register
 router.get('/register', forwardAuthenticated, (req, res) => {
-    res.render('register');
+    res.render('users/register');
 });
 
-// @desc    Login page
-// @route   GET /login
+// @desc    Show login page
+// @route   GET /users/login
 router.get('/login', forwardAuthenticated, (req, res) => {
-    res.render('login');
+    res.render('users/login');
 });
 
 // @desc    Process register form
 // @route   POST /register
-router.post('/register', (req, res) => {
-    const { name, username, email, password, password2 } = req.body;
+router.post('/register', forwardAuthenticated, (req, res) => {
+    const { name, username, email, phone, password, password2, signature } = req.body;
     let errors = [];
 
     // Check required fields
-    if (!name || !username || !email || !password || !password2) {
-        errors.push({ msg: 'Please fill in all fields.' });
+    if (!name || !username || !phone || !password || !password2 || !signature) {
+        errors.push({ msg: 'Please fill in all fields (email is optional but strongly recommended).' });
     }
 
     // Check passwords match
@@ -42,13 +42,14 @@ router.post('/register', (req, res) => {
 
     // If there are errors, re-render the page with the errors and entered information passed in
     if (errors.length > 0) {
-        res.render('register', {
+        res.render('users/register', {
             errors,
             name,
             username,
             email,
+            phone,
             password,
-            password2
+            password2,
         });
     } else { // Validation passed
         User.findOne({ username: username }).then(user => {
@@ -60,6 +61,7 @@ router.post('/register', (req, res) => {
                     name,
                     username,
                     email,
+                    phone,
                     password,
                     password2
                 });
@@ -68,7 +70,9 @@ router.post('/register', (req, res) => {
                     name,
                     username,
                     email,
+                    phone,
                     password,
+                    signature
                 });
 
                 // Hash password
@@ -78,10 +82,10 @@ router.post('/register', (req, res) => {
                         // Set password to hashed
                         newUser.password = hash;
 
-                        // Save user
+                        // Save the new user
                         newUser.save()
                             .then(user => {
-                                // Use flash messages and store the success message in the session. Then, redirect to the login page.
+                                // Redirect to the login page with a success message (stored in the session)
                                 req.flash('success_msg', 'You are now registed and can log in.');
                                 res.redirect('/users/login');
                             })
@@ -94,9 +98,9 @@ router.post('/register', (req, res) => {
 
 // @desc    Process login form
 // @route   POST /login
-router.post('/login', (req, res, next) => {
+router.post('/login', forwardAuthenticated, (req, res, next) => {
     passport.authenticate('local', {
-        successRedirect: '/dashboard',
+        successRedirect: '/activities/my-activities',
         failureRedirect: '/users/login',
         failureFlash: true
     })(req, res, next);
@@ -104,7 +108,7 @@ router.post('/login', (req, res, next) => {
 
 // @desc    Process logout
 // @route   POST /login
-router.get('/logout', (req, res) => {
+router.get('/logout', ensureAuthenticated, (req, res) => {
     req.logout();
     req.flash('success_msg', 'You are logged out');
     res.redirect('/users/login');

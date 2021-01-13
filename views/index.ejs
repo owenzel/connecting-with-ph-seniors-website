@@ -1,0 +1,40 @@
+<%- include ("./partials/add_btn"); %>
+<%- include ("./partials/messages"); %>
+
+<div class="container">
+    <h3>Connecting with Parma Heights Seniors Virtual Activities</h3>
+    <% if (!user) { %>
+        <p>Want to create your own activity posts, speed up the activity sign-up process, save the activities you signed up for, and/or receive email reminders? <a href="/users/register">REGISTER</a> for an account or <a href="/users/login">LOG IN</a>!</p>
+    <% } %>
+    <div class="row">
+        <% activities.forEach(function(activity) { %>
+            <div class="col s12 m4">
+                <div class="card">
+                    <div class="card-image">
+                        <!-- If a user is logged in and this post was created by the logged in user, display the edit button. -->
+                        <% if (user) { %>
+                            <%- editIcon(activity.creatorUser, user._id, activity._id) %>
+                        <% } %>
+                    </div>
+                    <div class="card-content center-align">
+                        <h5><%= stripTags(truncate(activity.title, 150)) %></h5>
+                        <p><%= stripTags(truncate(activity.body, 150)) %></p>
+                        <br>
+                        <div class="teal lighten-5">
+                            <%= formatDate(activity.date, 'MMMM Do YYYY, h:mm a') %>
+                        </div>
+                    </div>
+                    <div class="card-action center-align">
+                        <div class="row">
+                            <a href="/activities/<%= activity._id %>" class="btn light-blue darken-3">Read More</a>
+                            <a href="/sign-up" class="btn indigo darken-3">Sign Up</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% }); %>
+        <% if (activities.length === 0) { %>
+            <p>No activities to display!</p>
+        <% } %>
+    </div>
+</div>

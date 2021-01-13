@@ -6,22 +6,38 @@ const ActivitySchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    body: {
+    date: {
+        type: Date,
+        required: true
+    },
+    leaderName: {
         type: String,
         required: true
+    },
+    leaderUser: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     },
     status: {
         type: String,
         default: 'public',
         enum: ['public', 'private']
     },
-    user: {
+    body: {
+        type: String,
+        required: true
+    },
+    creatorUser: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    rsvps: {
+        type: Array,
+        default: []
     }
 });
 

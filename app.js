@@ -43,7 +43,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // EJS helpers
-const { formatDate, stripTags, truncate, editIcon, select } = require('./helpers/ejs');
+const { getDateRange, formatDate, stripTags, truncate, editIcon, select } = require('./helpers/ejs');
+app.locals.getDateRange = getDateRange;
 app.locals.formatDate = formatDate;
 app.locals.stripTags = stripTags;
 app.locals.truncate = truncate;

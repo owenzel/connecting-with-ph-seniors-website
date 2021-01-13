@@ -1,33 +1,63 @@
-<h3>Edit Activity</h3>
-<div class="row">
-    <form action="/activities/<%= activity._id %>" method="POST" class="col s12">
-        <input type="hidden" name="_method" value="PUT">
-        <div class="row">
-            <div class="input-field">
-                <input type="text" id="title" name="title" value="<%= activity.title %>">
-                <label for="title">Title</label>
+<div class="container">
+    <h3>Edit an Activity Post</h3>
+    <div class="row">
+        <form action="/activities/<%= activity._id %>" method="POST" class="col s12">
+            <input type="hidden" name="_method" value="PUT">
+            <div class="row">
+                <div class="input-field">
+                    <input type="text" id="title" name="title" value="<%= activity.title %>">
+                    <label for="title">Title</label>
+                </div>
             </div>
-        </div>
 
-        <div class="row">
-            <div class="input-field">
-                <select id="status" name="status">
-                    <%- select(activity.status, '<option value="public">Public</option> <option value="private">Private</option>') %>
-                </select>
-                <label for="status">Status</label>
+            <div class="row">
+                <div class="input-field">
+                    <input type="date" id="date" name="date" value="<%= activity.date %>">
+                    <label for="date">Activity Date</label>
+                </div>
             </div>
-        </div>
 
-        <div class="row">
-            <div class="input-field">
-                <h5>Description</h5>
-                <textarea id="body" name="body"><%= activity.body %></textarea>
+            <div class="row">
+                <div class="input-field">
+                    <input type="time" id="time" name="time" value="<%= activity.time %>">
+                    <label for="time">Activity Time</label>
+                </div>
             </div>
-        </div>
 
-        <div class="row">
-            <input type="submit" value="Save" class="btn">
-            <a href="/dashboard" class="btn orange">Cancel</a>
-        </div>
-    </form>
+            <div class="row">
+                <div class="input-field">
+                    <input type="text" id="leader" name="leader" value="<%= activity.leader %>">
+                    <label for="leader">Activity Leader</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field">
+                    <input type="text" id="leaderContact" name="leaderContact" value="<%= activity.leaderContact %>">
+                    <label for="leaderContact">Activity Leader Contact Information</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field">
+                    <select id="status" name="status">
+                        <%- select(activity.status, '<option value="public">Public</option> <option value="private">Private</option>') %>
+                    </select>
+                    <label for="status">Status</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field">
+                    <h5>Description</h5>
+                    <textarea id="body" name="body"><%= activity.body %></textarea>
+                </div>
+            </div>
+
+            <div class="row">
+                <input type="submit" value="Save" class="btn">
+                <a href="/activities/my-activities" class="btn orange">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>

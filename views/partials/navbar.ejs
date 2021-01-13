@@ -1,0 +1,19 @@
+  <nav class="teal lighten-1">
+    <div class="nav-wrapper container">
+        <a href="#" data-target="mobile-demo" class="sidenav-trigger show-on-large"><i class="fas fa-bars"></i></a>
+        <ul class="sidenav" id="mobile-demo">
+            <li><a href="/">All Activities</a></li>
+            <li><a href="/sign-up">Sign Up for Activities</a></li>
+
+            <!--Render navbar links based on whether the user is logged in.-->
+            <% if (user) { %>
+                <li><a href="/activities/my-activities">My Activities</a></li>
+                <li><a href="/activities/create">Create an Activity</a></li>
+                <li><a href="/users/logout">Log Out</a></li>
+            <% } else { %>
+                <li><a href="/users/register">Register for an Account</a></li>
+                <li><a href="/users/login">Log In</a></li>
+            <% } %> 
+        </ul>
+    </div>
+</nav>

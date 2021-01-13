@@ -1,0 +1,46 @@
+<%- include ("./../partials/messages"); %>
+
+<div class="container">
+    <h4>Log in</h4>
+    <p>Log in to create your own activity posts, speed up the activity sign-up process, see the activities you signed up for, and/or change your RSVPs.</p>
+
+    <div class="row">
+        <form action="/users/login" method="POST">
+            <div class="row">
+                <div class="input-field">
+                      <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Enter a Username"
+                        value="<%= typeof username != 'undefined' ? username : '' %>"
+                      >
+                      <label for="username">Username</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field">
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      placeholder="Enter a Password"
+                      value="<%= typeof password != 'undefined' ? password : '' %>"
+                    />
+                    <label for="password">Password</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <button type="submit" class="btn blue">Log In</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="divider"></div>
+
+    <div class="row">
+        <p>Don't have an account? <a href="/users/register">REGISTER</a>.</p>
+    </div>
+</div>

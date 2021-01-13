@@ -1,0 +1,118 @@
+<%- include ("./../partials/messages"); %>
+
+<div class="container">
+    <h4>Register</h4>
+    <p>Register for an account to create your own activity posts, speed up the activity sign-up process, save the activities you signed up for, and/or receive email reminders.</p>
+
+    <div class="row">
+        <form action="/users/register" method="POST">
+            <div class="row">
+                <div class="input-field">
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      placeholder="Enter Your Name"
+                      value="<%= typeof name != 'undefined' ? name : '' %>"
+                    >
+                    <label for="name">Name</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field">
+                      <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Enter a Username"
+                        value="<%= typeof username != 'undefined' ? username : '' %>"
+                      >
+                      <label for="username">Username</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field">
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      placeholder="Enter Your Email"
+                      value="<%= typeof email != 'undefined' ? email : '' %>"
+                    >
+                    <label for="email">Email</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field">
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      placeholder="Enter Your Phone Number (example: 444-444-4444)"
+                      pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                      value="<%= typeof phone != 'undefined' ? phone : '' %>"
+                    />
+                    <label for="email">Phone Number</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field">
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      placeholder="Enter a Password"
+                      value="<%= typeof password != 'undefined' ? password : '' %>"
+                    />
+                    <label for="password">Password</label>
+                </div>
+            </div>
+
+            <div class="row">
+              <div class="input-field">
+                  <input
+                    type="password"
+                    id="password2"
+                    name="password2"
+                    placeholder="Enter a Password"
+                    value="<%= typeof password2 != 'undefined' ? password2 : '' %>"
+                  />
+                  <label for="password2">Confirm Password</label>
+              </div>
+          </div>
+
+            <div class="row">
+                <h6>Waiver for Participation</h6>
+                <p><b>Your digital signature below signifies your agreement to the following:</b></p>
+                <p>I understand that participation in virtual activities over the phone, computer, tablet, or other technological device includes, but is not limited to, technology set-up, games, puzzles, crafts, reading, exercise, and discussion. I understand that participation requires physical and mental exertion.</p>
+                <p>As is the case with any activity, the risk of injury, even serious or disabling, is always present and cannot be entirely eliminated. I will progress at my own pace. If at any point I feel overexertion, pain, or discomfort, I will respect my body’s limitations and I will rest before continuing to participate.</p>
+                <p>No virtual activity is a substitute for medical attention, examination, diagnoses or treatment. Virtual activities are not recommended and may not be safe under certain medical conditions. I affirm that I alone am responsible to decide to participate in virtual activities. I hereby agree to irrevocably release and waive any claims that I have now or hereafter may have against Olivia Wenzel, other virtual event facilitators, and the Parma Heights Senior Center or its employees.</p>
+                <p>I acknowledge that participation in virtual activities exposes me to a possible risk of personal injury. I am fully aware of this risk and hereby release the program leader Olivia Wenzel, other virtual event facilitators, and the Parma Heights Senior Center and its employees from any and all liability, negligence, or other claims arising from or in any way connected with my participation in virtual activities.</p>
+                <p>I shall not now or at any time in the future bring any legal action against Olivia Wenzel, other virtual event facilitators, and the Parma Heights Senior Center and its employees. This waiver is binding on me, my heirs, my spouse, my children, my legal representatives, my successors, and my assigns. I am physically fit to participate in virtual activities, and a licensed doctor has verified my physical condition for participation in the types of virtual activities I participate in.</p>
+              
+                <div class="input-field">
+                  <input
+                    type="text"
+                    id="signature"
+                    name="signature"
+                    placeholder="Enter Your Name as a Digital Signature"
+                  >
+                </div>
+            </div>
+
+            <div class="row">
+                <button type="submit" class="btn blue">Register</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="divider"></div>
+
+    <div class="row">
+        <p>Already Have an Account? <a href="/users/login">LOG IN</a>.</p>
+    </div>
+</div>
