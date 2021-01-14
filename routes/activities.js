@@ -3,7 +3,7 @@ const router = express.Router();
 const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
 
 const User = require('./../models/User');
-const Activity = require('./../models/Activities');
+const Activity = require('../models/Activity');
 
 // @desc    Show My Activities page
 // @route   GET /activities/my-activities

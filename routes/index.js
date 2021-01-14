@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 const transporter = require('./../config/email');
-const Activity = require('./../models/Activities');
+const Activity = require('../models/Activity');
+const User = require('./../models/User');
 
 // @desc    Show landing page: all public activities
 // @route   GET /
@@ -35,24 +36,48 @@ router.get('/questions', async (req, res) => {
 router.post('/questions', async (req, res) => {
     const { name, email, phone, questions } = req.body;
 
-    // Create and send an email to to admin (TODO: also send to activity creator and leader, if applicable - would need to adjust the form to accomodate this)
-    const mailContent = {
-        from: `${process.env.EMAIL}`,
-        to: `oliviacwenzel@gmail.com`,
-        subject: `Virtual Connections Question(s) From ${name}`,
-        text: `${name} (phone: ${phone}, email: ${email}) submitted the following questions: ${questions}`
-    };
+    try {
+        // Find the admin users
+        const adminUsers = await User.find({ admin: true }).lean();
 
-    transporter.sendMail(mailContent, (e, data) => {
-        if (e) {
-            console.log(e);
-            req.flash('error_msg', "We're sorry. Something went wrong. Your questions were not submitted.");
-            res.redirect('/');
-        } else {
-            req.flash('success_msg', 'Your questions were successfully submitted!');
-            res.redirect('/');
-        }
-      });
+        // Create a string of the email recipients (admin with emails + TODO: activity creator and leader, if applicable)
+        let emailRecipients = "";
+        adminUsers.forEach(admin => {
+            if (admin.email.length > 0) {
+                emailRecipients += `${admin.email},`;
+            }
+        });
+
+        //Create and send an email with the question(s)
+        const emailContent = {
+            from: `${process.env.EMAIL}`,
+            to: `${emailRecipients}`,
+            subject: `Virtual Connections Question(s) From ${name}`,
+            html: `
+                    <h1>A question was submitted by ${name} to the Connecting With Parma Heights Seniors - Virtual Activities website </h1>
+                    <h3>Question(s):</h3>
+                    <p>"${questions}"</p>
+                    <h3>${name}'s Contact Information:</h3>
+                    <p><b>Phone Number:</b> ${phone}</p>
+                    <p><b>Email:</b> ${email}</p>
+                `
+        };
+
+        transporter.sendMail(emailContent, (e, data) => {
+            if (e) {
+                console.log(e);
+                req.flash('error_msg', "We're sorry. Something went wrong. Your questions were not submitted.");
+                res.redirect('/');
+            } else {
+                req.flash('success_msg', 'Your questions were successfully submitted!');
+                res.redirect('/');
+            }
+        });
+    } catch (e) {
+        console.log(e);
+        req.flash('error_msg', "We're sorry. Something went wrong.");
+        res.redirect('/');
+    }
 });
 
 // @desc    Show activities sign up page

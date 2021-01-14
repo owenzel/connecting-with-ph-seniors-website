@@ -32,7 +32,6 @@
                     <div class="card-image">
                         <!-- If a user is logged in and this post was created by the logged in user, display the edit button. -->
                         <% if (user) { %>
-                            <% console.log(user); %>
                             <%- editIcon(activity.creatorUser, user, activity._id) %>
                         <% } %>
                     </div>

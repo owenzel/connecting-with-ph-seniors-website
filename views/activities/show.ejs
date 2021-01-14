@@ -19,9 +19,9 @@
             <% if (user) { %>
                 <span class="card-title"><b>RSVPs:</b>
                     <% if (user.admin || activity.creatorUser._id.toString() == user._id.toString()) { %>
-                        
+                        <a href="/activities/<%= activity._id %>/rsvps">Click here to see the <%= activity.rsvps.length %> RSVP(s).</a>
                     <% } else { %>
-
+                        <p>You do not have permission to view the RSVPs for this activity.</p>
                     <% } %>
                 </span>
             <% } %>
