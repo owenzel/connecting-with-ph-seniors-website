@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
         const activities = await Activity.find({ status: 'public' })
             .populate('leaderUser')
             .populate('creatorUser')
-            .sort({ createdAt: 'desc' })
+            .sort({ date: 'asc', time: 'asc' })
             .lean();
         
         res.render('index', {
@@ -24,9 +24,16 @@ router.get('/', async (req, res) => {
 });
 
 // @desc    Show questions page (for users to send questions to admin)
-// @route   GET /
+// @route   GET /questions
 router.get('/questions', async (req, res) => {
     res.render('questions');
+});
+
+// @desc    Process questions form
+// @route   POST /questions
+router.post('/questions', async (req, res) => {
+    // TODO: Send email to admin, activity creator, and activity leader (if applicable -- may need to adjust form as well to accomodate this)
+    res.send(req.body);
 });
 
 // @desc    Show activities sign up page
@@ -36,7 +43,7 @@ router.get('/sign-up', async (req, res) => {
         const activities = await Activity.find({ status: 'public' })
             .populate('leaderUser')
             .populate('creatorUser')
-            .sort({ createdAt: 'desc' })
+            .sort({ date: 'asc', time: 'asc' })
             .lean();
         
         res.render('sign-up', {
@@ -50,7 +57,7 @@ router.get('/sign-up', async (req, res) => {
     }
 });
 
-// @desc    Process activities sign-up
+// @desc    Process activities sign-up form
 // @route   POST /sign-up
 router.post('/sign-up', async (req, res) => {
     let { name, email, phone, selectedActivities } = req.body;

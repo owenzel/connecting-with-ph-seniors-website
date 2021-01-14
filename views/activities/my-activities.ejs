@@ -103,7 +103,7 @@
                         <th>Date</th>
                         <th>Status</th>
                         <th>Leader Name</th>
-                        <th><!--Edit and delete buttons--></th>
+                        <th><!--Cancel RSVP button--></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -114,10 +114,7 @@
                             <td><span class="dash-status"><%= activity.status %></span></td>
                             <td><%= activity.leaderName %></td>
                             <td>
-                                <form action="/activities/<%= activity._id %>/rsvp" method="POST">
-                                    <input type="hidden" name="_method" value="DELETE">
-                                    <button type="submit" class="btn red">CANCEL RSVP</button>
-                                </form>
+                                <%- cancelRsvpBtn(user, activity.rsvps, activity._id) %>
                             </td>
                         </tr>
                     <% }); %>

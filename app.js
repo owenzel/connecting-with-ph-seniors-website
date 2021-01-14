@@ -1,14 +1,15 @@
 const path = require('path');
 const dotenv = require('dotenv'); // for keeping info secure
 const morgan = require('morgan'); // for console logs
-const mongoose = require('mongoose'); // for communicating with the Mongo DB
 const express = require('express'); // for web server
 const expressLayouts = require('express-ejs-layouts'); // templating language
-const methodOverride = require('method-override');
-const flash = require('connect-flash');
+const methodOverride = require('method-override'); // for sending PUT and DELETE requests
+const flash = require('connect-flash'); // for persisting messages on redirects
+// For sessions, cookies, and authentication
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const passport = require('passport');
+const mongoose = require('mongoose'); // for communicating with the Mongo DB
 const connectDB = require('./config/db'); // for connecting to the database with an async-await format (as opposed to promises)
 
 // Load config file
@@ -35,7 +36,7 @@ app.use(methodOverride(function (req, res) {
       delete req.body._method;
       return method;
     }
-  }))
+}));
 
 // Console logging
 if (process.env.NODE_ENV === 'development') {
@@ -43,12 +44,13 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // EJS helpers
-const { getDateRange, formatDate, stripTags, truncate, editIcon, select } = require('./helpers/ejs');
-app.locals.getDateRange = getDateRange;
+const { getDateRangeStartingToday, formatDate, stripTags, truncate, editIcon, cancelRsvpBtn, select } = require('./helpers/ejs');
+app.locals.getDateRangeStartingToday = getDateRangeStartingToday;
 app.locals.formatDate = formatDate;
 app.locals.stripTags = stripTags;
 app.locals.truncate = truncate;
 app.locals.editIcon = editIcon;
+app.locals.cancelRsvpBtn = cancelRsvpBtn;
 app.locals.select = select;
 
 // Set EJS as Template Engine

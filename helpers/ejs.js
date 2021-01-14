@@ -4,9 +4,9 @@ const moment = require('moment');
 
 module.exports = {
     // Return a list of the start (today) and end (which is a given number of months away from the start) dates
-    getDateRange: function (months) {
+    getDateRangeStartingToday: function (months, days, years) {
         const start = new Date();
-        const end = new Date().setMonth(start.getUTCMonth() + months);
+        const end = new Date().setFullYear(start.getFullYear() + years, start.getUTCMonth() + months, start.getDate() + days);
         return [start, end];
     },
     // Format a given date string using the moment package
@@ -29,8 +29,8 @@ module.exports = {
         return input.replace(/<(?:.|\n)*?>/gm, '');
     },
     // Edit icon to appear on the activities the given (logged in) user posted
-    editIcon: function (activityCreatorUser, loggedUser, activityId, floating = true) {
-        if (activityCreatorUser._id.toString() == loggedUser._id.toString()) {
+    editIcon: function (activityCreatorUser, loggedInUser, activityId, floating = true) {
+        if (activityCreatorUser._id.toString() == loggedInUser._id.toString()) {
             if (floating) {
                 return `<a href="/activities/${activityId}/edit" class="btn-floating halfway-fab blue"><i class="fas fa-edit fa-small"></i></a>`;
             } else {
@@ -38,6 +38,16 @@ module.exports = {
             }
         } else {
             return '';
+        }
+    },
+    cancelRsvpBtn: function(loggedInUser, activityRsvps, activityId, alternative='') {
+        if (activityRsvps.find(activity => activity.email == loggedInUser.email)) {
+            return `<form action="/activities/${activityId}/rsvp" method="POST">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="submit" class="btn red">CANCEL RSVP</button>
+                    </form>`;
+        } else {
+            return alternative;
         }
     },
     // Display selected option in a select dropdown via Regex

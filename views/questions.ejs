@@ -1,3 +1,71 @@
+<%- include ("./partials/messages"); %>
+
 <div class="container">
     <h4>Submit (a) Question(s)</h4>
+
+    <!-- If a user is not logged in, prompt them to register or log in before signing up for an activity -->
+    <% if (!user) { %>
+        <p><a href="/users/register">REGISTER</a> for an account or <a href="/users/login">LOG IN</a> to speed up this process, speed up the activity sign-up process, save the activities you sign up for, receive email reminders, have the ability to change your RSVPs later, and create your own activity posts!</p>
+    <% } %>
+
+    <!-- If a user is logged in, fill in the appropriate fields with that user's information. Otherwise, leave those fields blank. -->
+    <div class="section">
+        <form action="/questions" method="POST">
+            <div class="row">
+                <div class="input-field">
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        placeholder="Enter Your Name"
+                        value="<%= user ? user.name : '' %>"
+                    >
+                    <label for="name">Name</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field">
+                    <input 
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Enter Your Email"
+                        value="<%= user ? user.email : '' %>"
+                    >
+                    <label for="email">Email</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field">
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                        placeholder="Enter Your Phone Number (example: 444-444-4444)"
+                        value="<%= user ? user.phone : '' %>"
+                    >
+                    <label for="phone">Phone Number</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field">
+                  <textarea
+                    id="questions"
+                    name="questions"
+                    placeholder="Enter Your Question(s)"
+                    class="materialize-textarea"></textarea>
+                  <label for="questions">Question(s)</label>
+                </div>
+              </div>
+            
+            <div class="row">
+                <button type="submit" class="btn"><i class="fas fa-check"></i> Submit</button>
+                <a href="/" class="btn orange"><i class="fas fa-times-circle"></i> Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>

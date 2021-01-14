@@ -24,6 +24,10 @@ const UserSchema = new mongoose.Schema({
     signature: {
         type: String,
         required: true
+    },
+    admin: {
+        type: Boolean,
+        default: false
     }
 });
 

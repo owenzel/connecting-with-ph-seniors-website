@@ -38,6 +38,10 @@ const ActivitySchema = new mongoose.Schema({
     rsvps: {
         type: Array,
         default: []
+    },
+    expireAt: {
+        type: Date,
+        required: true
     }
 });
 
