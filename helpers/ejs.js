@@ -50,11 +50,11 @@ module.exports = {
             return '';
         }
     },
-    cancelRsvpBtn: function(loggedInUser, activityRsvps, activityId, alternative='') {
-        if (activityRsvps.find(activity => activity.email == loggedInUser.email)) {
-            return `<form action="/activities/${activityId}/rsvp" method="POST">
+    cancelRsvpBtn: function(userEmail, activityRsvps, activityId, btnText, alternative='') {
+        if (activityRsvps.find(activity => activity.email == userEmail)) {
+            return `<form action="/activities/${activityId}/${userEmail}/rsvp" method="POST">
                         <input type="hidden" name="_method" value="DELETE">
-                        <button type="submit" class="btn red">CANCEL RSVP</button>
+                        <button type="submit" class="btn red">${btnText}</button>
                     </form>`;
         } else {
             return alternative;
@@ -71,5 +71,5 @@ module.exports = {
             new RegExp('>' + selected + '</option>'),
             ' selected="selected"$&'
           );
-      },
+    },
 };

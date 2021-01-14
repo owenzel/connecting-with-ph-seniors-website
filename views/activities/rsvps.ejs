@@ -1,27 +1,97 @@
+<%- include ("./../partials/messages"); %>
+
 <div class="container">
-    <h3><%= title %> RSVP(s)</h3>
-    <% if (rsvps.length > 0) { %>
-        <table class="striped">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone Number</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% rsvps.forEach(function(rsvp) { %>
+    <div class="row">
+        <h3><%= activity.title %> RSVP(s)</h3>
+    </div>
+
+    <div class="row">
+        <% if (activity.rsvps.length > 0) { %>
+            <table class="striped">
+                <thead>
                     <tr>
-                        <td><%= rsvp.name %></td>
-                        <td><%= rsvp.email %></td>
-                        <td><%= rsvp.phone %></td>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone Number</th>
+                        <th><!-- Delete button --></th>
                     </tr>
-                <% }); %>
-            </tbody>
-        </table>
-    <% } else { %>
-        <p>There are no RSVPs for this activity yet!</p>
-    <% } %>
+                </thead>
+                <tbody>
+                    <% activity.rsvps.forEach(function(rsvp) { %>
+                        <tr>
+                            <td><%= rsvp.name %></td>
+                            <td><%= rsvp.email %></td>
+                            <td><%= rsvp.phone %></td>
+                            <td><%- cancelRsvpBtn(rsvp.email, activity.rsvps, activity._id, 'Delete RSVP') %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <p>There are no RSVPs for this activity yet!</p>
+        <% } %>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+        <div class="row">
+            <h5>Add an RSVP</h5>
+            <p>NOTE: Please only use this form to submit an RSVP for someone who does NOT have an account. Anyone who has an account should log in and RSVP through their own account.</p>
+        </div>
+
+        <div class="row">
+            <form action="/activities/<%= activity._id %>/rsvps" method="POST">
+                <input type="hidden" name="_method" value="PUT">
+    
+                <div class="row">
+                    <div class="input-field">
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            placeholder="Enter Their Name"
+                            value="<%= typeof name != 'undefined' ? name : '' %>"
+                        >
+                        <label for="name">Name</label>
+                    </div>
+                </div>
+    
+                <div class="row">
+                    <div class="input-field">
+                        <input 
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter Their Email"
+                            value="<%= typeof email != 'undefined' ? email : '' %>"
+                        >
+                        <label for="email">Email</label>
+                    </div>
+                </div>
+    
+                <div class="row">
+                    <div class="input-field">
+                        <input
+                            type="tel"
+                            id="phone"
+                            name="phone"
+                            pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                            placeholder="Enter Their Phone Number (example: 444-444-4444)"
+                            value="<%= typeof phone != 'undefined' ? phone : '' %>"
+                        >
+                        <label for="phone">Phone Number</label>
+                    </div>
+                </div>
+    
+                <input type="hidden" id="activityId" name="activityId" value="<%= activity._id %>">
+    
+                <div class="row">
+                    <button type="submit" class="waves-effect waves-light btn"><i class="fas fa-plus right"></i> Add RSVP</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="divider"></div>
 

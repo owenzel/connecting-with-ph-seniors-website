@@ -155,8 +155,7 @@ router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
         // If a user is attempting to view the RSVPs for an activity that do not have access to, redirect them with an error message
         if (req.user.admin || activity.creatorUser == req.user.id || activity.leaderUser == req.user.id) {
             res.render('activities/rsvps', {
-                title: activity.title,
-                rsvps: activity.rsvps
+                activity
             });
         // If the user is an admin or has access to this activity, render a page with the list of RSVPs
         } else {
@@ -170,9 +169,77 @@ router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
     }
 });
 
+// @desc    Update given activity's RSVPs
+// @route   GET /activities/:id/rsvps
+router.put('/:id/rsvps', ensureAuthenticated, async (req, res) => {
+    let { name, email, phone, activityId } = req.body;
+    let errors = [];
+
+    // Check required fields
+    if (!name || !phone) {
+        errors.push({ msg: 'Please fill in all fields. '});
+    }
+    if (!activityId) {
+        errors.push({ msg: 'Please submit an RSVP for a valid activity. '});
+    }
+
+    // Make sure the selected activity was valid
+    try {
+        const activity = await Activity.findOne({ _id: activityId }).lean();
+
+        if (!activity) {
+            console.log(e);
+            req.flash('error_msg', "We're sorry. Something went wrong.");
+            res.redirect('/');
+        }
+
+        // If there are errors, re-render the page with the errors
+        if (errors.length > 0) {
+            res.render('activities/rsvps', {
+                errors,
+                activity,
+                name,
+                email,
+                phone
+            });
+        } else { // Validation passed
+            // Update the activity with the new RSVP
+            const found = activity.rsvps.find(rsvp => rsvp.email == email);
+
+            // If the new attempted RSVP hasn't already signed up for this activity, save a new rsvp to this activity
+            if (!found) {
+                try {
+                    const newRsvp = {
+                        name,
+                        email: email ? email : `${name} (no email)`,
+                        phone
+                    };
+                    await Activity.updateOne({ _id: activity }, { $push: { rsvps: newRsvp } });
+                    
+                    req.flash('success_msg', 'This RSVP was successfully submitted!');
+                    res.redirect('/activities/my-activities');
+                } catch (e) {
+                    console.log(e);
+                    req.flash('error_msg', "We're sorry. Something went wrong.");
+                    res.redirect('/');
+                }
+            }
+            // If the new RSVP has already signed up for this activity, redirect the user with an error
+            else {
+                req.flash('error_msg', "A user with this email is already signed up for this activity!");
+                res.redirect('/activities/my-activities');
+            }
+        }
+    } catch (e) {
+        console.log(e);
+        req.flash('error_msg', "We're sorry. Something went wrong.");
+        res.redirect('/');
+    }
+});
+
 // @desc    Cancel RSVP to activity
 // @route   PUT /activities/:id/cancel
-router.delete('/:id/rsvp', ensureAuthenticated, async (req, res) => {
+router.delete('/:id/:userEmail/rsvp', ensureAuthenticated, async (req, res) => {
     try {
         let activity = await Activity.findById(req.params.id).lean();
 
@@ -186,11 +253,11 @@ router.delete('/:id/rsvp', ensureAuthenticated, async (req, res) => {
         if (activity.rsvps.find(async rsvp => rsvp.email == req.user.email)) {
             try {
                 await Activity.findOneAndUpdate({ "_id": req.params.id },
-                    { $pull: { rsvps: { email: req.user.email } } }
+                    { $pull: { rsvps: { email: req.params.userEmail } } }
                 );
 
                 // If the RSVP was successfully canceled, redirect them with a success message
-                req.flash('success_msg', 'You have successfully canceled your RSVP.');
+                req.flash('success_msg', 'You have successfully canceled the RSVP.');
                 res.redirect('/activities/my-activities');
             } catch (e) {
                 console.log(e);

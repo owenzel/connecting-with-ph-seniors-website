@@ -60,7 +60,7 @@ router.post('/register', forwardAuthenticated, (req, res) => {
                     errors,
                     name,
                     username,
-                    email,
+                    email: email ? email : `${name} (no email)`,
                     phone,
                     password,
                     password2

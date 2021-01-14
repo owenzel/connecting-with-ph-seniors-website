@@ -5,6 +5,8 @@
     <div class="section">
         <div class="row">
             <%- include ("./../partials/add_btn"); %>
+        </div>
+        <div class="row">
             <%- include ("./../partials/home_btn"); %>
         </div>
     </div>
@@ -33,7 +35,7 @@
                             <td><span class="dash-status"><%= activity.status %></span></td>
                             <td><%= activity.leaderName %></td>
                             <td>
-                                <a href="/activities/<%= activity._id %>/rsvps">Click here to see the <%= activity.rsvps.length %> RSVP(s).</a>
+                                <a href="/activities/<%= activity._id %>/rsvps">Click here to see or modify the <%= activity.rsvps.length %> RSVP(s).</a>
                             </td>
                             <td>
                                 <%- editIcon(activity.creatorUser, user, activity._id, false) %>
@@ -106,7 +108,7 @@
                             <td><span class="dash-status"><%= activity.status %></span></td>
                             <td><%= activity.leaderName %></td>
                             <td>
-                                <%- cancelRsvpBtn(user, activity.rsvps, activity._id) %>
+                                <%- cancelRsvpBtn(user.email, activity.rsvps, activity._id, 'Cancel RSVP') %>
                             </td>
                         </tr>
                     <% }); %>

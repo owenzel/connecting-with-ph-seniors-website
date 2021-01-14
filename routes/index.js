@@ -108,8 +108,8 @@ router.post('/sign-up', async (req, res) => {
     let errors = [];
 
     // Check required fields
-    if (!name || !email || !phone || !selectedActivities) {
-        errors.push({ msg: 'Please fill in all fields. '});
+    if (!name || !phone || !selectedActivities) {
+        errors.push({ msg: 'Please fill in all fields (email is optional but strongly recommended). '});
     }
 
     // Make sure all submitted activities are valid
@@ -122,7 +122,7 @@ router.post('/sign-up', async (req, res) => {
         selectedActivities.forEach(async activity => {
             try {
                 if (!await Activity.findOne({ _id: activity }).lean()) {
-                    return errors.push({ msg: 'Please submit valid activities. '});
+                    errors.push({ msg: 'Please submit valid activities. '});
                 }
             } catch (e) {
                 console.log(e);
@@ -164,27 +164,31 @@ router.post('/sign-up', async (req, res) => {
                     try {
                         const newRsvp = {
                             name,
-                            email,
+                            email: email ? email : `${name} (no email)`,
                             phone
                         };
                         await Activity.updateOne({ _id: activity }, { $push: { rsvps: newRsvp } });
+
+                        req.flash('success_msg', 'You are successfully signed up!');
+                        res.redirect('/');
                     } catch (e) {
                         console.log(e);
                         req.flash('error_msg', "We're sorry. Something went wrong.");
                         res.redirect('/');
                     }
-              }
+                }
+                // If the new RSVP has already signed up for this activity, redirect the user with an error
+                else {
+                    req.flash('error_msg', "A user with this email is already signed up for this activity!");
+                    res.redirect(`/${activityId}/rsvps`);
+                }
             } catch (e) {
                 console.log(e);
                 req.flash('error_msg', "We're sorry. Something went wrong.");
                 res.redirect('/');
             }
         });
-
-        req.flash('success_msg', 'You are successfully signed up!');
-        res.redirect('/');
     }
-    
 });
 
 module.exports = router;
