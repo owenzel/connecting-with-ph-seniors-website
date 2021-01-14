@@ -1,19 +1,42 @@
 <div class="container">
-    <h3><%= activity.title %>
-        <% if (user) { %>
-            <small><%- editIcon(activity.creatorUser, user._id, activity._id, false) %></small>
-        <% } %>
-    </h3>
+    <h3><%= activity.title %></h3>
+
+    <% if (user) { %>
+        <div class="row">
+            <div class="col">
+                <%- editIcon(activity.creatorUser, user, activity._id, false) %>
+            </div>
+            <div class="col">
+                <%- deleteBtn(activity.creatorUser, user, activity._id) %>
+            </div>
+        </div>
+    <% } %>
+    
     <div class="card activity">
         <div class="card-content">
             <span class="card-title"><b>Takes place at:</b> <%= formatDate(activity.date, 'MMMM Do YYYY, h:mm a') %></span>
             <span class="card-title"><b>Led by:</b> <%= activity.leaderName %></span>
+            <% if (user) { %>
+                <span class="card-title"><b>RSVPs:</b>
+                    <% if (user.admin || activity.creatorUser._id.toString() == user._id.toString()) { %>
+                        
+                    <% } else { %>
+
+                    <% } %>
+                </span>
+            <% } %>
             <%= stripTags(activity.body) %>
         </div>
         <div class="card-action">
             <div class="row">
-                <a href="/sign-up" class="btn indigo darken-3">Sign Up</a>
-                <a href="/" class="btn orange">View Other Activities</a>
+                <div class="col">
+                    <a href="/sign-up" class="btn indigo darken-3">Sign Up</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <a href="/" class="btn orange">View Other Activities</a>
+                </div>
             </div>
         </div>
     </div>

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
+const transporter = require('./../config/email');
 const Activity = require('./../models/Activities');
 
 // @desc    Show landing page: all public activities
@@ -32,8 +33,26 @@ router.get('/questions', async (req, res) => {
 // @desc    Process questions form
 // @route   POST /questions
 router.post('/questions', async (req, res) => {
-    // TODO: Send email to admin, activity creator, and activity leader (if applicable -- may need to adjust form as well to accomodate this)
-    res.send(req.body);
+    const { name, email, phone, questions } = req.body;
+
+    // Create and send an email to to admin (TODO: also send to activity creator and leader, if applicable - would need to adjust the form to accomodate this)
+    const mailContent = {
+        from: `${process.env.EMAIL}`,
+        to: `oliviacwenzel@gmail.com`,
+        subject: `Virtual Connections Question(s) From ${name}`,
+        text: `${name} (phone: ${phone}, email: ${email}) submitted the following questions: ${questions}`
+    };
+
+    transporter.sendMail(mailContent, (e, data) => {
+        if (e) {
+            console.log(e);
+            req.flash('error_msg', "We're sorry. Something went wrong. Your questions were not submitted.");
+            res.redirect('/');
+        } else {
+            req.flash('success_msg', 'Your questions were successfully submitted!');
+            res.redirect('/');
+        }
+      });
 });
 
 // @desc    Show activities sign up page

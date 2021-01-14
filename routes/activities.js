@@ -153,15 +153,15 @@ router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
         }
 
         // If a user is attempting to view the RSVPs for an activity that do not have access to, redirect them with an error message
-        if (!req.user.admin || activity.creatorUser != req.user.id || activity.leaderUser != req.user.id) {
-            req.flash('error_msg', "You do not have permission to edit this activity.");
-            res.redirect('/');
-        // If the user is an admin or has access to this activity, render a page with the list of RSVPs
-        } else {
+        if (req.user.admin || activity.creatorUser == req.user.id || activity.leaderUser == req.user.id) {
             res.render('activities/rsvps', {
                 title: activity.title,
                 rsvps: activity.rsvps
             });
+        // If the user is an admin or has access to this activity, render a page with the list of RSVPs
+        } else {
+            req.flash('error_msg', "You do not have permission to edit this activity.");
+            res.redirect('/');
         }
     } catch (e) {
         console.log(e);
@@ -222,14 +222,14 @@ router.get('/:id/edit', ensureAuthenticated, async (req, res) => {
         }
     
         // If a user is attempting to edit an activity that do not have access to, redirect them with an error message
-        if (!req.user.admin || activity.creatorUser != req.user.id) {
-            req.flash('error_msg', "You do not have permission to edit this activity.");
-            res.redirect('/');
-        // If the user is an admin or has access to this activity, render the edit page
-        } else {
+        if (req.user.admin || activity.creatorUser == req.user.id) {
             res.render('activities/edit', {
                 activity,
             });
+        // If the user is an admin or has access to this activity, render the edit page
+        } else {
+            req.flash('error_msg', "You do not have permission to edit this activity.");
+            res.redirect('/');
         }
     } catch (e) {
         console.log(e);
@@ -252,11 +252,7 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
         }
 
         // If a user is attempting to edit an activity that do not have access to, redirect them with an error message
-        if (!req.user.admin || activity.creatorUser != req.user.id) {
-            req.flash('error_msg', "You do not have permission to edit this activity.");
-            res.redirect('/');
-        // If the user is an admin or has access to this activity, update it
-        } else {
+        if (req.user.admin || activity.creatorUser == req.user.id) {
             activity = await Activity.findOneAndUpdate({ _id: req.params.id }, req.body, {
                 new: true,
                 runValidators: true
@@ -264,6 +260,10 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
 
             req.flash('success_msg', 'The activity was successfully edited.');
             res.redirect('/activities/my-activities');
+        // If the user is an admin or has access to this activity, update it
+        } else {
+            req.flash('error_msg', "You do not have permission to edit this activity.");
+            res.redirect('/');
         }
     } catch (e) {
         console.log(e);

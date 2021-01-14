@@ -1,16 +1,30 @@
 <%- include ("./partials/messages"); %>
 
 <div class="container">
-    <h3>Connecting with Parma Heights Seniors Virtual Activities</h3>
-    <% if (user) { %>
-        <%- include ("./partials/add_btn"); %>
-        <%- include ("./partials/my_activities_btn"); %>
-    <% } else { %>
-        <p>Want to create your own activity posts, speed up the activity sign-up process, save the activities you signed up for, and/or receive email reminders? <a href="/users/register">REGISTER</a> for an account or <a href="/users/login">LOG IN</a>!</p>
-    <% } %>
     <div class="row">
-
+        <div class="col">
+            <h3>Connecting with Parma Heights Seniors Virtual Activities</h3>
+        </div>
     </div>
+    <% if (user) { %>
+        <div class="row">
+            <div class="col">
+                <%- include ("./partials/add_btn"); %>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <%- include ("./partials/my_activities_btn"); %>
+            </div>
+        </div>  
+    <% } else { %>
+        <div class="row">
+            <div class="col">
+                <p>Want to create your own activity posts, speed up the activity sign-up process, save the activities you signed up for, and/or receive email reminders? <a href="/users/register">REGISTER</a> for an account or <a href="/users/login">LOG IN</a>!</p>
+            </div>
+        </div>
+    <% } %>
+    
     <div class="row">
         <% activities.forEach(function(activity) { %>
             <div class="col s12 m4">
@@ -18,7 +32,8 @@
                     <div class="card-image">
                         <!-- If a user is logged in and this post was created by the logged in user, display the edit button. -->
                         <% if (user) { %>
-                            <%- editIcon(activity.creatorUser, user._id, activity._id) %>
+                            <% console.log(user); %>
+                            <%- editIcon(activity.creatorUser, user, activity._id) %>
                         <% } %>
                     </div>
                     <div class="card-content center-align">
@@ -34,7 +49,11 @@
                             <a href="/activities/<%= activity._id %>" class="btn light-blue darken-3">Read More</a>
                         </div>
                         <div class="row">
-                            <%- cancelRsvpBtn(user, activity.rsvps, activity._id, '<a href="/sign-up" class="btn indigo darken-3">Sign Up</a>') %>
+                            <% if (user) { %>
+                                <%- cancelRsvpBtn(user, activity.rsvps, activity._id, '<a href="/sign-up" class="btn indigo darken-3">Sign Up</a>') %>
+                            <% } else { %>
+                                <a href="/sign-up" class="btn indigo darken-3">Sign Up</a>
+                            <% } %>
                         </div>
                     </div>
                 </div>

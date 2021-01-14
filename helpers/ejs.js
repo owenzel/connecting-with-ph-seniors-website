@@ -30,12 +30,22 @@ module.exports = {
     },
     // Edit icon to appear on the activities the given (logged in) user posted
     editIcon: function (activityCreatorUser, loggedInUser, activityId, floating = true) {
-        if (activityCreatorUser._id.toString() == loggedInUser._id.toString()) {
+        if (loggedInUser.admin || activityCreatorUser._id.toString() == loggedInUser._id.toString()) {
             if (floating) {
                 return `<a href="/activities/${activityId}/edit" class="btn-floating halfway-fab blue"><i class="fas fa-edit fa-small"></i></a>`;
             } else {
-                return `<a href="/activities/${activityId}/edit"><i class="fas fa-edit"></i></a>`;
+                return `<a href="/activities/${activityId}/edit" class="waves-effect waves-light btn blue"><i class="fas fa-edit"></i> Edit</a>`;
             }
+        } else {
+            return '';
+        }
+    },
+    deleteBtn: function(activityCreatorUser, loggedInUser, activityId) {
+        if (loggedInUser.admin || activityCreatorUser._id.toString() == loggedInUser._id.toString()) {
+            return `<form action="/activities/${activityId}" method="POST" id="delete-form">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="submit" class="waves-effect waves-light btn red"><i class="fas fa-trash"></i> Delete</button>
+                    </form>`;
         } else {
             return '';
         }
