@@ -35,7 +35,7 @@
                             <td><span class="dash-status"><%= activity.status %></span></td>
                             <td><%= activity.leaderName %></td>
                             <td>
-                                <a href="/activities/<%= activity._id %>/rsvps">Click here to see or modify the <%= activity.rsvps.length %> RSVP(s).</a>
+                                <a href="/activities/<%= activity._id %>/rsvps">Click here to see, modify, or contact the <%= activity.rsvps.length %> RSVP(s).</a>
                             </td>
                             <td>
                                 <%- editIcon(activity.creatorUser, user, activity._id, false) %>

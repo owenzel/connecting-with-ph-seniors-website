@@ -5,68 +5,116 @@
 
     <!-- If a user is not logged in, prompt them to register or log in before signing up for an activity -->
     <% if (!user) { %>
-        <p><a href="/users/register">REGISTER</a> for an account or <a href="/users/login">LOG IN</a> to speed up this process, speed up the activity sign-up process, save the activities you sign up for, receive email reminders, have the ability to change your RSVPs later, and create your own activity posts!</p>
+        <p><a href="/users/register">REGISTER</a> for an account or <a href="/users/login">LOG IN</a> to speed up this process, speed up the activity sign-up process, save and the activities you sign up for, change your RSVPs, and create your own activity posts!</p>
     <% } %>
 
-    <!-- If a user is logged in, fill in the appropriate fields with that user's information. Otherwise, leave those fields blank. -->
     <div class="section">
-        <form action="/questions" method="POST">
-            <div class="row">
-                <div class="input-field">
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        placeholder="Enter Your Name"
-                        value="<%= user ? user.name : '' %>"
-                    >
-                    <label for="name">Name</label>
-                </div>
-            </div>
 
-            <div class="row">
-                <div class="input-field">
-                    <input 
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="Enter Your Email"
-                        value="<%= user ? user.email : '' %>"
-                    >
-                    <label for="email">Email</label>
-                </div>
-            </div>
+        <!-- FORM PART 1 -->
+        <% if (questionCategories) { %>
+            <form action="/questions" method="POST">
+                <input type="hidden" name="categoriesWereSubmitted" value="true">
 
-            <div class="row">
-                <div class="input-field">
-                    <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
-                        placeholder="Enter Your Phone Number (example: 444-444-4444)"
-                        value="<%= user ? user.phone : '' %>"
-                    >
-                    <label for="phone">Phone Number</label>
+                <div class="row">
+                    <p>What are Your Questions About?</p>
+                    <div class="input-field">
+                        <% questionCategories.forEach(function(category) { %>
+                            <p>
+                                <label>
+                                    <input
+                                        class="filled-in"
+                                        type="checkbox"
+                                        name="categories"
+                                        value="<%= category.value %>"
+                                    >
+                                    <span class="black-text"><%= category.text %></span>
+                                </label>
+                            </p>
+                        <% }); %>
+                    </div>
                 </div>
-            </div>
+                
+                <div class="row">
+                    <button type="submit" class="btn"><i class="fas fa-check"></i> Next</button>
+                    <a href="/" class="btn orange"><i class="fas fa-times-circle"></i> Cancel</a>
+                </div>
+            </form>
+        <% } else { %>
+            <!-- FORM PART 2: If a user is logged in, fill in the appropriate fields with that user's information. Otherwise, leave those fields blank. -->
+            <form action="/questions" method="POST">
+                <div class="row">
+                    <div class="input-field">
+                        <input
+                            type="text"
+                            name="name"
+                            placeholder="Enter Your Name"
+                            value="<%= user ? user.name : '' %>"
+                        >
+                        <label for="name">What is Your Name?</label>
+                    </div>
+                </div>
 
-            <div class="row">
-                <div class="input-field">
-                    <input
-                        type="text"
-                        id="questions"
-                        name="questions"
-                        placeholder="Enter Your Question(s)"
-                    >
-                    <label for="questions">Question(s)</label>
+                <div class="row">
+                    <div class="input-field">
+                        <input 
+                            type="email"
+                            name="email"
+                            placeholder="Enter Your Email"
+                            value="<%= user ? user.email : '' %>"
+                        >
+                        <label for="email">What is Your Email?</label>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="row">
-                <button type="submit" class="btn"><i class="fas fa-check"></i> Submit</button>
-                <a href="/" class="btn orange"><i class="fas fa-times-circle"></i> Cancel</a>
-            </div>
-        </form>
+
+                <div class="row">
+                    <div class="input-field">
+                        <input
+                            type="tel"
+                            name="phone"
+                            pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                            placeholder="Enter Your Phone Number (example: 444-444-4444)"
+                            value="<%= user ? user.phone : '' %>"
+                        >
+                        <label for="phone">What is Your Phone Number?</label>
+                    </div>
+                </div>
+
+                <% if (activities) { %>
+                    <div class="row">
+                        <p>What Activity Do You Have Question(s) About?</p>
+                        <div class="input-field">
+                            <% activities.forEach(function(activity) { %>
+                                <p>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="activityInQuestion"
+                                            value="<%= activity._id %>"
+                                        >
+                                        <span class="black-text"><%= activity.title %></span>
+                                    </label>
+                                </p>
+                            <% }); %>
+                        </div>
+                    </div>
+                <% } %>
+
+                <div class="row">
+                    <div class="input-field">
+                        <input
+                            type="text"
+                            name="questions"
+                            placeholder="Enter Your Question(s)"
+                        >
+                        <label for="questions">What are Your Question(s)?</label>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <button type="submit" class="btn"><i class="fas fa-check"></i> Submit</button>
+                    <a href="/" class="btn orange"><i class="fas fa-times-circle"></i> Cancel</a>
+                </div>
+            </form>
+        <% } %>
     </div>
 </div>

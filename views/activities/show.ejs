@@ -14,18 +14,18 @@
     
     <div class="card activity">
         <div class="card-content">
-            <span class="card-title"><b>Takes place at:</b> <%= formatDate(activity.date, 'MMMM Do YYYY, h:mm a') %></span>
+            <span class="card-title"><b>Takes place on:</b> <%= formatDate(activity.date, 'MMMM Do YYYY, h:mm a') %></span>
             <span class="card-title"><b>Led by:</b> <%= activity.leaderName %></span>
             <% if (user) { %>
                 <span class="card-title"><b>RSVPs:</b>
                     <% if (user.admin || activity.creatorUser._id.toString() == user._id.toString()) { %>
-                        <a href="/activities/<%= activity._id %>/rsvps">Click here to see or modify the <%= activity.rsvps.length %> RSVP(s).</a>
+                        <a href="/activities/<%= activity._id %>/rsvps">Click here to see, modify, or contact the <%= activity.rsvps.length %> RSVP(s).</a>
                     <% } else { %>
                         <p>You do not have permission to view the RSVPs for this activity.</p>
                     <% } %>
                 </span>
             <% } %>
-            <%= stripTags(activity.body) %>
+            <span class="card-title"><b>Description:</b> <%= stripTags(activity.body) %></span>
         </div>
         <div class="card-action">
             <div class="row">

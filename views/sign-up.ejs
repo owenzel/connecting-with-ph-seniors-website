@@ -5,7 +5,7 @@
 
     <!-- If a user is not logged in, prompt them to register or log in before signing up for an activity -->
     <% if (!user) { %>
-        <p><a href="/users/register">REGISTER</a> for an account or <a href="/users/login">LOG IN</a> to speed up the activity sign-up process, save the activities you sign up for, receive email reminders, have the ability to change your RSVPs later, and create your own activity posts!</p>
+        <p><a href="/users/register">REGISTER</a> for an account or <a href="/users/login">LOG IN</a> to speed up the activity sign-up process, save and see the activities you sign up for, change your RSVPs, and create your own activity posts!</p>
     <% } %>
 
     <!-- If a user is logged in, fill in the appropriate fields with that user's information. Otherwise, leave those fields blank. -->
@@ -15,12 +15,11 @@
                 <div class="input-field">
                     <input
                         type="text"
-                        id="name"
                         name="name"
                         placeholder="Enter Your Name"
                         value="<%= user ? user.name : '' %>"
                     >
-                    <label for="name">Name</label>
+                    <label for="name">What is Your Name?</label>
                 </div>
             </div>
 
@@ -28,12 +27,11 @@
                 <div class="input-field">
                     <input 
                         type="email"
-                        id="email"
                         name="email"
                         placeholder="Enter Your Email"
                         value="<%= user ? user.email : '' %>"
                     >
-                    <label for="email">Email</label>
+                    <label for="email">What is Your Email?</label>
                 </div>
             </div>
 
@@ -41,18 +39,17 @@
                 <div class="input-field">
                     <input
                         type="tel"
-                        id="phone"
                         name="phone"
                         pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
                         placeholder="Enter Your Phone Number (example: 444-444-4444)"
                         value="<%= user ? user.phone : '' %>"
                     >
-                    <label for="phone">Phone Number</label>
+                    <label for="phone">What is Your Phone Number?</label>
                 </div>
             </div>
 
             <div class="row">
-                <p>Select the Activities You Want to Sign Up For:</p>
+                <p>Which Activities Do You Want to Sign Up For?</p>
                 <div class="input-field">
                     <% activities.forEach(function(activity) { %>
                         <p>
@@ -60,7 +57,6 @@
                                 <input
                                     class="filled-in"
                                     type="checkbox"
-                                    id="selectedActivities"
                                     name="selectedActivities"
                                     value="<%= activity._id %>"
                                 >
@@ -85,11 +81,10 @@
                     <div class="input-field">
                         <input
                             type="text"
-                            id="signature"
                             name="signature"
                             placeholder="Enter Your Name"
                         >
-                        <label for="signature">Digital Signature</label>
+                        <label for="signature">Please Enter Your Digital Signature</label>
                     </div>
                 </div>
             <% } %>

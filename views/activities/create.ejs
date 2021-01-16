@@ -9,10 +9,9 @@
                 <div class="input-field">
                     <input
                         type="text"
-                        id="title"
                         name="title"
                     >
-                    <label for="title">Activity Title</label>
+                    <label for="title">What is the Activity Title?</label>
                 </div>
             </div>
 
@@ -20,12 +19,11 @@
                 <div class="input-field">
                     <input
                         type="date"
-                        id="date"
                         name="date"
                         min=<%= formatDate(availableDates[0], 'YYYY-MM-DD') %>
                         max=<%= formatDate(availableDates[1], 'YYYY-MM-DD') %>
                     >
-                    <label for="date">Activity Date</label>
+                    <label for="date">When Will the Activity Take Place?</label>
                 </div>
             </div>
 
@@ -33,10 +31,9 @@
                 <div class="input-field">
                     <input
                         type="time"
-                        id="time"
                         name="time"
                     >
-                    <label for="time">Activity Time</label>
+                    <label for="time">At What Time Will the Activity Occur?</label>
                 </div>
             </div>
 
@@ -44,37 +41,27 @@
                 <div class="input-field">
                     <input
                         type="text"
-                        id="leaderName"
                         name="leaderName"
                     >
-                    <label for="leaderName">Activity Leader</label>
+                    <label for="leaderName">Who is the Activity Leader?</label>
                 </div>
             </div>
 
             <div class="row">
                 <div class="input-field">
-                    <input
-                        type="text"
-                        id="leaderUsername"
-                        name="leaderUsername"
-                    >
-                    <label for="leaderUsername">Activity Leader Username (if they have an account)</label>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="input-field">
-                    <select id="status" name="status">
-                        <option value="public" selected>Public</option>
-                        <option value="private">Private</option>
+                    <select id="leaderUsername" name="leaderUsername">
+                      <option value="" selected>The Activity Leader Does Not Have an Account</option>
+                      <% users.forEach(user => { %>
+                        <option value="<%= user.username %>"><%= user.username %></option>
+                      <% }); %>
                     </select>
-                    <label for="status">Activity Status</label>
-                </div>
+                    <label for="leaderUsername">What is the Activity Leader's Username?</label>
+                  </div>
             </div>
 
             <div class="row">
                 <div class="input-field">
-                    <h5>Activity Description</h5>
+                    <h5>Describe the Activity.</h5>
                     <textarea id="body" name="body"></textarea>
                 </div>
             </div>

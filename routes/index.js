@@ -5,6 +5,8 @@ const transporter = require('./../config/email');
 const Activity = require('../models/Activity');
 const User = require('./../models/User');
 
+const questionCategories = [{ text: 'A Specific Activity', value: 'activity' }, { text: 'Using the Website', value: 'website' }, { text: 'Something Else', value: 'other' }];
+
 // @desc    Show landing page: all public activities
 // @route   GET /
 router.get('/', async (req, res) => {
@@ -28,55 +30,125 @@ router.get('/', async (req, res) => {
 // @desc    Show questions page (for users to send questions to admin)
 // @route   GET /questions
 router.get('/questions', async (req, res) => {
-    res.render('questions');
+    res.render('questions', { questionCategories });
 });
 
 // @desc    Process questions form
 // @route   POST /questions
 router.post('/questions', async (req, res) => {
-    const { name, email, phone, questions } = req.body;
+    let { categoriesWereSubmitted, categories, name, email, phone, questions, activityInQuestion } = req.body;
+    let errors = [];
+    
+    // Handle the user submitting part 1 of the form
+    if (categoriesWereSubmitted) {
+        // Ensure the user selected at least one category
+        if (!categories) {
+            errors.push({ msg: 'Please select at least one question category. '})
+        // Ensure categories is an array
+        } else if (!Array.isArray(categories)) {
+            categories = [ categories ];
+        }
 
-    try {
-        // Find the admin users
-        const adminUsers = await User.find({ admin: true }).lean();
-
-        // Create a string of the email recipients (admin with emails + TODO: activity creator and leader, if applicable)
-        let emailRecipients = "";
-        adminUsers.forEach(admin => {
-            if (admin.email.length > 0) {
-                emailRecipients += `${admin.email},`;
-            }
-        });
-
-        //Create and send an email with the question(s)
-        const emailContent = {
-            from: `${process.env.EMAIL}`,
-            to: `${emailRecipients}`,
-            subject: `Virtual Connections Question(s) From ${name}`,
-            html: `
-                    <h1>A question was submitted by ${name} to the Connecting With Parma Heights Seniors - Virtual Activities website </h1>
-                    <h3>Question(s):</h3>
-                    <p>"${questions}"</p>
-                    <h3>${name}'s Contact Information:</h3>
-                    <p><b>Phone Number:</b> ${phone}</p>
-                    <p><b>Email:</b> ${email}</p>
-                `
-        };
-
-        transporter.sendMail(emailContent, (e, data) => {
-            if (e) {
-                console.log(e);
-                req.flash('error_msg', "We're sorry. Something went wrong. Your questions were not submitted.");
-                res.redirect('/');
+        // If there are any errors, re-render the page with alerts to the user. Otherwise, render the page with part 2 of the form
+        if (errors.length > 0) {
+            res.render('questions', {
+                errors,
+                questionCategories
+            });
+        } else {
+            let activities = null;
+            // If the user has a question about a specific activity, get the activity leaders
+            if (categories.find(category => category === 'activity')) {
+                try {
+                    activities = await Activity.find({ })
+                        .populate('leaderUser')
+                        .populate('creatorUser')
+                        .lean();
+                    res.render('questions', { 
+                        questionCategories: null,
+                        activities,
+                    });
+                } catch (e) {
+                    console.log(e);
+                    req.flash('error_msg', "We're sorry. Something went wrong.");
+                    res.redirect('/');
+                }
             } else {
-                req.flash('success_msg', 'Your questions were successfully submitted!');
-                res.redirect('/');
+                res.render('questions', { 
+                    questionCategories: null,
+                    activities,
+                });
             }
-        });
-    } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "We're sorry. Something went wrong.");
-        res.redirect('/');
+        }
+    }
+
+    // Handle the user submitting part 2 of the form
+    else {
+        try {
+            // Create a string of the email recipients
+            let emailRecipients = "";
+            
+            // Find the admin users and add them to the email recipients
+            const adminUsers = await User.find({ admin: true }).lean();
+
+            adminUsers.forEach(admin => {
+                if (admin.email.includes('@')) {
+                    emailRecipients += `${admin.email},`;
+                }
+            });
+
+            // If there are questions about activities, find the associated creators and leaders and add them to the email recipients
+            if (activityInQuestion) {
+                try {
+                    const activity = await Activity.findOne({ _id: activityInQuestion })
+                        .populate('leaderUser')
+                        .populate('creatorUser')
+                        .lean();
+
+                    if (!activity.creatorUser.admin && activity.creatorUser.email.includes('@')) {
+                        emailRecipients += `${activity.creatorUser.email},`;
+                    }
+                    if (activity.leaderUser && !activity.leaderUser.admin && (activity.creatorUser._id != activity.leaderUser._id) && activity.leaderUser.email.includes('@')) {
+                        emailRecipients += `${activity.leaderUser.email},`;
+                    }
+
+                } catch (e) {
+                    console.log(e);
+                    req.flash('error_msg', "We're sorry. Something went wrong.");
+                    res.redirect('/');
+                }
+            }
+    
+            //Create and send an email with the question(s)
+            const emailContent = {
+                from: `${process.env.EMAIL}`,
+                to: `${emailRecipients}`,
+                subject: `Virtual Connections Question(s) From ${name}`,
+                html: `
+                        <h1>A question was submitted by ${name} to the Connecting With Parma Heights Seniors - Virtual Activities website </h1>
+                        <h3>Question(s):</h3>
+                        <p>"${questions}"</p>
+                        <h3>${name}'s Contact Information:</h3>
+                        <p><b>Phone Number:</b> ${phone}</p>
+                        <p><b>Email:</b> ${email}</p>
+                    `
+            };
+    
+            transporter.sendMail(emailContent, (e, data) => {
+                if (e) {
+                    console.log(e);
+                    req.flash('error_msg', "We're sorry. Something went wrong. Your questions were not submitted.");
+                    res.redirect('/');
+                } else {
+                    req.flash('success_msg', 'Your questions were successfully submitted!');
+                    res.redirect('/');
+                }
+            });
+        } catch (e) {
+            console.log(e);
+            req.flash('error_msg', "We're sorry. Something went wrong.");
+            res.redirect('/');
+        }
     }
 });
 

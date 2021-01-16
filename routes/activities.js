@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
 
+const transporter = require('./../config/email');
 const User = require('./../models/User');
 const Activity = require('../models/Activity');
 
@@ -46,30 +47,37 @@ router.get('/my-activities', ensureAuthenticated, async (req, res) => {
 
 // @desc    Show create activity page
 // @route   GET /activities/create
-router.get('/create', ensureAuthenticated, (req, res) => {
-    res.render('activities/create');
+router.get('/create', ensureAuthenticated, async (req, res) => {
+    try {
+        const users = await User.find({}).lean();
+        res.render('activities/create', { users });
+    } catch (e) {
+        console.log(e);
+        req.flash('error_msg', "We're sorry. Something went wrong.");
+        res.redirect('/');
+    }
 });
 
 // @desc    Process create activity form
 // @route   POST /activities/create
 router.post('/create', ensureAuthenticated, async (req, res) => {
-    const { title, date, time, leaderName, leaderUsername, status, body } = req.body;
+    const { title, date, time, leaderName, leaderUsername, body } = req.body;
     let errors = [];
 
     // Check required fields
-    if (!title || !date || !time || !leaderName || !status || !body) {
+    if (!title || !date || !time || !leaderName || !body) {
         errors.push({ msg: 'Please fill in all fields (Activity Leader Username is optional but strongly recommended if they have an account).' });
     }
     
     // If a username for an activity leader was entered, find them
     let leaderUser = null;
     
-    if (leaderUsername) {
+    if (leaderUsername != "") {
         try {
             leaderUser = await User.findOne({ username: leaderUsername }).lean();
 
             if (!leaderUser) {
-                errors.push({ msg: 'The Activity Leader Username does not exist. Please ensure this is the correct username or leave the field blank if this person does not have an account.' });
+                errors.push({ msg: 'The Activity Leader Username does not exist. Please select a valid leader name.' });
             }
         } catch (e) {
             console.log(e);
@@ -80,9 +88,17 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
 
     // If there are errors, re-render the page with the errors and entered information passed in
     if (errors.length > 0) {
-        res.render('activities/create', {
-            errors
-        });
+        try {
+            const users = await User.find({}).lean();
+            res.render('activities/create', {
+                errors,
+                users
+            });
+        } catch (e) {
+            console.log(e);
+            req.flash('error_msg', "We're sorry. Something went wrong.");
+            res.redirect('/');
+        }
     } else { // Validation passed
         // Create and save the new activity
         //const expirationDate = new Date(`${date}T${time}`);
@@ -94,7 +110,6 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
             date: new Date(`${date}T${time}`),
             leaderName,
             leaderUser: leaderUsername ? leaderUser._id : null,
-            status,
             body,
             creatorUser: req.user.id,
             expireAt: expirationDate,
@@ -172,20 +187,17 @@ router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
 // @desc    Update given activity's RSVPs
 // @route   GET /activities/:id/rsvps
 router.put('/:id/rsvps', ensureAuthenticated, async (req, res) => {
-    let { name, email, phone, activityId } = req.body;
+    let { name, email, phone } = req.body;
     let errors = [];
 
     // Check required fields
     if (!name || !phone) {
         errors.push({ msg: 'Please fill in all fields. '});
     }
-    if (!activityId) {
-        errors.push({ msg: 'Please submit an RSVP for a valid activity. '});
-    }
 
     // Make sure the selected activity was valid
     try {
-        const activity = await Activity.findOne({ _id: activityId }).lean();
+        const activity = await Activity.findOne({ _id: req.params.id }).lean();
 
         if (!activity) {
             console.log(e);
@@ -275,12 +287,52 @@ router.delete('/:id/:userEmail/rsvp', ensureAuthenticated, async (req, res) => {
     }
 });
 
+// @desc    Process email RSVPs form
+// @route   POST /activities/:id/email-rsvps
+router.post('/:id/email-rsvps', ensureAuthenticated, async (req, res) => {
+    let { subject, emailBody, rsvpEmails } = req.body;
+
+    //Create and send an email to the RSVPs and message author, with the admin account CC'd
+    let emailRecipients = `${req.user.email},`;
+
+    rsvpEmails = rsvpEmails.split(','); // turn the comma-separated list of RSVPs into an array
+
+    rsvpEmails.forEach(email => {
+        if (email.includes('@')) {
+            emailRecipients += `${email},`;
+        }
+    });
+    
+    const emailContent = {
+        from: `${process.env.EMAIL}`,
+        to: `${emailRecipients}`,
+        cc: `${process.env.EMAIL_ADMIN}`,
+        subject: `${subject}`,
+        html: `
+                <h3>Below is a message from ${req.user.name}, which was submitted through Connecting With Parma Heights Seniors - Virtual Activities website </h3>
+                <p>${emailBody}</p>
+            `
+    };
+
+    transporter.sendMail(emailContent, (e, data) => {
+        if (e) {
+            console.log(e);
+            req.flash('error_msg', "We're sorry. Something went wrong. Your questions were not submitted.");
+            res.redirect('/');
+        } else {
+            req.flash('success_msg', 'Your message was successfully sent!');
+            res.redirect('/activities/my-activities');
+        }
+    });
+});
 
 // @desc    Edit activity page
 // @route   GET /activities/edit/:id
 router.get('/:id/edit', ensureAuthenticated, async (req, res) => {
     try {
-        const activity = await Activity.findOne({_id: req.params.id}).lean();
+        const activity = await Activity.findOne({_id: req.params.id})
+            .populate('leaderUser')
+            .lean();
     
         // If the requested activity does not exist, redirect the user with an error message
         if (!activity) {
@@ -288,12 +340,23 @@ router.get('/:id/edit', ensureAuthenticated, async (req, res) => {
             res.redirect('/');
         }
     
-        // If a user is attempting to edit an activity that do not have access to, redirect them with an error message
-        if (req.user.admin || activity.creatorUser == req.user.id) {
-            res.render('activities/edit', {
-                activity,
-            });
         // If the user is an admin or has access to this activity, render the edit page
+        if (req.user.admin || activity.creatorUser == req.user.id) {
+            try {
+                // Fetch the users for the leader username select field
+                const users = await User.find({}).lean();
+
+                res.render('activities/edit', { 
+                    activity,
+                    users
+                });
+            } catch (e) {
+                console.log(e);
+                req.flash('error_msg', "We're sorry. Something went wrong.");
+                res.redirect('/');
+            }
+
+        // If a user is attempting to edit an activity that do not have access to, redirect them with an error message
         } else {
             req.flash('error_msg', "You do not have permission to edit this activity.");
             res.redirect('/');

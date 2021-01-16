@@ -44,7 +44,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // EJS helpers
-const { getDateRangeStartingToday, formatDate, stripTags, truncate, editIcon, deleteBtn, cancelRsvpBtn, select } = require('./helpers/ejs');
+const { getDateRangeStartingToday, formatDate, stripTags, truncate, editIcon, deleteBtn, cancelRsvpBtn } = require('./helpers/helpers');
 app.locals.getDateRangeStartingToday = getDateRangeStartingToday;
 app.locals.formatDate = formatDate;
 app.locals.stripTags = stripTags;
@@ -52,7 +52,6 @@ app.locals.truncate = truncate;
 app.locals.editIcon = editIcon;
 app.locals.deleteBtn = deleteBtn;
 app.locals.cancelRsvpBtn = cancelRsvpBtn;
-app.locals.select = select;
 
 // Set EJS as Template Engine
 app.use(expressLayouts);

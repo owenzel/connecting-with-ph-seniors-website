@@ -1,61 +1,59 @@
 <div class="container">
     <h3>Edit an Activity Post</h3>
+
+    <div class="row">
+        <h5><a href="/activities/<%= activity._id %>/rsvps">Click here to see or modify the <%= activity.rsvps.length %> RSVP(s).</a></h5>
+    </div>
+    
     <div class="row">
         <form action="/activities/<%= activity._id %>" method="POST" class="col s12">
             <input type="hidden" name="_method" value="PUT">
             <div class="row">
                 <div class="input-field">
-                    <input type="text" id="title" name="title" value="<%= activity.title %>">
-                    <label for="title">Title</label>
+                    <input type="text" name="title" value="<%= activity.title %>">
+                    <label for="title">What is the Activity Title?</label>
                 </div>
             </div>
 
             <div class="row">
                 <div class="input-field">
-                    <input type="date" id="date" name="date" value="<%= activity.date %>">
-                    <label for="date">Activity Date</label>
+                    <input type="date" name="date" value="<%= activity.date %>">
+                    <label for="date">When Will the Activity Take Place?</label>
                 </div>
             </div>
 
             <div class="row">
                 <div class="input-field">
-                    <input type="time" id="time" name="time" value="<%= activity.time %>">
-                    <label for="time">Activity Time</label>
+                    <input type="time" name="time" value="<%= activity.time %>">
+                    <label for="time">At What Time Will the Activity Occur?</label>
                 </div>
             </div>
 
             <div class="row">
                 <div class="input-field">
-                    <input type="text" id="leader" name="leader" value="<%= activity.leader %>">
-                    <label for="leader">Activity Leader</label>
+                    <input type="text" name="leader" value="<%= activity.leader %>">
+                    <label for="leader">Who is the Activity Leader?</label>
                 </div>
             </div>
 
+            <!--TODO: Fix this so the option that was selected before is selected again-->
             <div class="row">
                 <div class="input-field">
-                    <input type="text" id="leaderContact" name="leaderContact" value="<%= activity.leaderContact %>">
-                    <label for="leaderContact">Activity Leader Contact Information</label>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="input-field">
-                    <select id="status" name="status">
-                        <%- select(activity.status, '<option value="public">Public</option> <option value="private">Private</option>') %>
+                    <select id="leaderUsername" name="leaderUsername">
+                      <option value="" selected>The Activity Leader Does Not Have an Account</option>
+                      <% users.forEach(user => { %>
+                        <option value="<%= user.username %>"><%= user.username %></option>
+                      <% }); %>
                     </select>
-                    <label for="status">Status</label>
-                </div>
+                    <label for="leaderUsername">What is the Activity Leader's Username?</label>
+                  </div>
             </div>
 
             <div class="row">
                 <div class="input-field">
-                    <h5>Description</h5>
+                    <h5>Describe the Activity.</h5>
                     <textarea id="body" name="body"><%= activity.body %></textarea>
                 </div>
-            </div>
-
-            <div class="row">
-                <h5><a href="/activities/<%= activity._id %>/rsvps">Click here to see or modify the <%= activity.rsvps.length %> RSVP(s).</a></h5>
             </div>
 
             <div class="row">

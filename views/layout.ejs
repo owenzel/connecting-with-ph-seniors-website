@@ -20,10 +20,14 @@
     <script>
         //Initialize Materialize components
         M.Sidenav.init(document.querySelector('.sidenav'));
-        M.FormSelect.init(document.querySelector('#status'));
+        M.FormSelect.init(document.querySelector('#leaderUsername'));
+        M.Modal.init(document.querySelectorAll('.modal'));
 
         // Initialize ckeditor
         CKEDITOR.replace('body', {
+            plugins: 'wysiwygarea, toolbar, basicstyles, link'
+        });
+        CKEDITOR.replace('emailBody', {
             plugins: 'wysiwygarea, toolbar, basicstyles, link'
         });
     </script>

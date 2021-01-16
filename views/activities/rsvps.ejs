@@ -5,32 +5,76 @@
         <h3><%= activity.title %> RSVP(s)</h3>
     </div>
 
-    <div class="row">
-        <% if (activity.rsvps.length > 0) { %>
-            <table class="striped">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone Number</th>
-                        <th><!-- Delete button --></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% activity.rsvps.forEach(function(rsvp) { %>
+    <% if (activity.rsvps.length > 0) { %>
+        <div class="section">
+            <div class="row">
+                <table class="striped">
+                    <thead>
                         <tr>
-                            <td><%= rsvp.name %></td>
-                            <td><%= rsvp.email %></td>
-                            <td><%= rsvp.phone %></td>
-                            <td><%- cancelRsvpBtn(rsvp.email, activity.rsvps, activity._id, 'Delete RSVP') %></td>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone Number</th>
+                            <th><!-- Delete button --></th>
                         </tr>
-                    <% }); %>
-                </tbody>
-            </table>
-        <% } else { %>
-            <p>There are no RSVPs for this activity yet!</p>
-        <% } %>
-    </div>
+                    </thead>
+                    <tbody>
+                        <% activity.rsvps.forEach(function(rsvp) { %>
+                            <tr>
+                                <td><%= rsvp.name %></td>
+                                <td><%= rsvp.email %></td>
+                                <td><%= rsvp.phone %></td>
+                                <td><%- cancelRsvpBtn(rsvp.email, activity.rsvps, activity._id, 'Delete RSVP') %></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section">
+            <div class="row">
+                <h5>Email Your RSVPs</h5>
+                <p>NOTE: People who do not have a valid email listed in the table above will NOT receive this message. Also, Olivia Wenzel (website admin) will be CC'd on the email.</p>
+            </div>
+
+            <div class="row">
+                <form action="/activities/<%= activity._id %>/email-rsvps" method="POST">
+                    <div class="row">
+                        <div class="input-field">
+                            <input
+                                type="text"
+                                name="subject"
+                                placeholder="Enter The Subject of Your Email"
+                            >
+                            <label for="name">What is the Subject of Your Email?</label>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="input-field">
+                            <h6>What is the Body of Your Email?</h6>
+                            <textarea id="emailBody" name="emailBody"></textarea>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="rsvpEmails" value="<%=activity.rsvps.map(rsvp => rsvp.email)%>">
+        
+                    <div class="row">
+                        <button type="submit" class="waves-effect waves-light btn"><i class="fas fa-plus right"></i> Send Email</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <% } else { %>
+        <div class="section">
+            <div class="row">
+                <p>There are no RSVPs for this activity yet!</p>
+            </div>
+        </div>
+    <% } %>
+    
 
     <div class="divider"></div>
 
@@ -48,12 +92,11 @@
                     <div class="input-field">
                         <input
                             type="text"
-                            id="name"
                             name="name"
                             placeholder="Enter Their Name"
                             value="<%= typeof name != 'undefined' ? name : '' %>"
                         >
-                        <label for="name">Name</label>
+                        <label for="name">What is Their Name?</label>
                     </div>
                 </div>
     
@@ -61,12 +104,11 @@
                     <div class="input-field">
                         <input 
                             type="email"
-                            id="email"
                             name="email"
                             placeholder="Enter Their Email"
                             value="<%= typeof email != 'undefined' ? email : '' %>"
                         >
-                        <label for="email">Email</label>
+                        <label for="email">What is Their Email?</label>
                     </div>
                 </div>
     
@@ -74,17 +116,14 @@
                     <div class="input-field">
                         <input
                             type="tel"
-                            id="phone"
                             name="phone"
                             pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
                             placeholder="Enter Their Phone Number (example: 444-444-4444)"
                             value="<%= typeof phone != 'undefined' ? phone : '' %>"
                         >
-                        <label for="phone">Phone Number</label>
+                        <label for="phone">What is Their Phone Number?</label>
                     </div>
                 </div>
-    
-                <input type="hidden" id="activityId" name="activityId" value="<%= activity._id %>">
     
                 <div class="row">
                     <button type="submit" class="waves-effect waves-light btn"><i class="fas fa-plus right"></i> Add RSVP</button>

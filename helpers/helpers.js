@@ -42,34 +42,40 @@ module.exports = {
     },
     deleteBtn: function(activityCreatorUser, loggedInUser, activityId) {
         if (loggedInUser.admin || activityCreatorUser._id.toString() == loggedInUser._id.toString()) {
-            return `<form action="/activities/${activityId}" method="POST" id="delete-form">
-                        <input type="hidden" name="_method" value="DELETE">
-                        <button type="submit" class="waves-effect waves-light btn red"><i class="fas fa-trash"></i> Delete</button>
-                    </form>`;
+            return `<button data-target="confirm-delete-modal" class="waves-effect waves-light btn red modal-trigger"><i class="fas fa-trash"></i> Delete</button>
+                    <div id="confirm-delete-modal" class="modal">
+                        <div class="modal-content">
+                        <h4>Are you sure you want to delete this activity?</h4>
+                        </div>
+                        <div class="modal-footer">
+                            <form action="/activities/${activityId}" method="POST" id="delete-form">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="button" href="#!" class="modal-close waves-effect waves-green btn-flat">No, I do not want to delete this activity.</button>
+                                <button type="submit" class="modal-close waves-effect waves-green btn-flat">Yes, I want to delete this activity.</button>
+                            </form>
+                        </div>
+                    </div>`;
         } else {
             return '';
         }
     },
     cancelRsvpBtn: function(userEmail, activityRsvps, activityId, btnText, alternative='') {
         if (activityRsvps.find(activity => activity.email == userEmail)) {
-            return `<form action="/activities/${activityId}/${userEmail}/rsvp" method="POST">
-                        <input type="hidden" name="_method" value="DELETE">
-                        <button type="submit" class="btn red">${btnText}</button>
-                    </form>`;
+            return `<button data-target="confirm-cancel-modal" class="btn red modal-trigger">${btnText}</button>
+                    <div id="confirm-cancel-modal" class="modal">
+                        <div class="modal-content">
+                        <h4>Are you sure you want to cancel this RSVP?</h4>
+                        </div>
+                        <div class="modal-footer">
+                            <form action="/activities/${activityId}/${userEmail}/rsvp" method="POST">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="button" href="#!" class="modal-close waves-effect waves-green btn-flat">No, I do not want to cancel this RSVP.</button>
+                                <button type="submit" class="modal-close waves-effect waves-green btn-flat">Yes, I want to cancel this RSVP.</button>
+                            </form>
+                        </div>
+                    </div>`;
         } else {
             return alternative;
         }
-    },
-    // Display selected option in a select dropdown via Regex
-    select: function (selected, options) {
-        return options
-          .replace(
-            new RegExp(' value="' + selected + '"'),
-            '$& selected="selected"'
-          )
-          .replace(
-            new RegExp('>' + selected + '</option>'),
-            ' selected="selected"$&'
-          );
-    },
+    }
 };
