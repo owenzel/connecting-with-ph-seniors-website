@@ -16,11 +16,13 @@
 
         <div class="section">
             <% if (activitiesToReview.length > 0) { %>
+                <p>Here are the activities that are pending approval:</p>
                 <table class="striped">
                     <thead>
                         <tr>
                             <th>Title</th>
-                            <th>Occurs At</th>
+                            <th>Created On</th>
+                            <th>Occurs On</th>
                             <th>Leader's Name</th>
                             <th>Description</th>
                             <th><!-- Approve or Reject Buttons --></th>
@@ -30,6 +32,7 @@
                         <% activitiesToReview.forEach(function(activity) { %>
                             <tr>
                                 <td><a href="/activities/<%= activity._id %>"><%= activity.title %></a></td>
+                                <td><%= formatDate(activity.createdAt, 'MMMM Do YYYY, h:mm a') %></td>
                                 <td><%= formatDate(activity.date, 'MMMM Do YYYY, h:mm a') %></td>
                                 <td><%= activity.leaderName %></td>
                                 <td>
@@ -59,7 +62,7 @@
                 <thead>
                     <tr>
                         <th>Title</th>
-                        <th>Occurs At</th>
+                        <th>Occurs On</th>
                         <th>Publication Status</th>
                         <th>Leader's Name</th>
                         <th>RSVPs</th>
@@ -101,7 +104,7 @@
                 <thead>
                     <tr>
                         <th>Title</th>
-                        <th>Occurs At</th>
+                        <th>Occurs On</th>
                         <th>Publication Status</th>
                         <th>Leader's Name</th>
                         <th>RSVPs</th>
