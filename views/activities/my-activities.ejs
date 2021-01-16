@@ -11,6 +11,45 @@
         </div>
     </div>
 
+    <% if (user.admin) { %>
+        <div class="divider"></div>
+
+        <div class="section">
+            <% if (activitiesToReview.length > 0) { %>
+                <table class="striped">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Occurs At</th>
+                            <th>Leader's Name</th>
+                            <th>Description</th>
+                            <th><!-- Approve or Reject Buttons --></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% activitiesToReview.forEach(function(activity) { %>
+                            <tr>
+                                <td><a href="/activities/<%= activity._id %>"><%= activity.title %></a></td>
+                                <td><%= formatDate(activity.date, 'MMMM Do YYYY, h:mm a') %></td>
+                                <td><%= activity.leaderName %></td>
+                                <td>
+                                    <%= stripTags(truncate(activity.body, 150)) %>
+                                </td>
+                                <td>
+                                    <!-- Approve or Reject Buttons -->
+                                    <%- approveBtn(user, activity._id) %>
+                                    <%- rejectBtn(user, activity._id) %>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p>There are no submitted activities to review.</p>
+            <% } %>
+        </div>
+    <% } %>
+
     <div class="divider"></div>
 
     <div class="section">
@@ -20,8 +59,8 @@
                 <thead>
                     <tr>
                         <th>Title</th>
-                        <th>Date</th>
-                        <th>Status</th>
+                        <th>Occurs At</th>
+                        <th>Publication Status</th>
                         <th>Leader's Name</th>
                         <th>RSVPs</th>
                         <th><!--Edit and delete buttons--></th>
@@ -38,7 +77,10 @@
                                 <a href="/activities/<%= activity._id %>/rsvps">Click here to see, modify, or contact the <%= activity.rsvps.length %> RSVP(s).</a>
                             </td>
                             <td>
-                                <%- editIcon(activity.creatorUser, user, activity._id, false) %>
+                                <!--If the activity has been published, they may edit it. Otherwise, they may only delete it.-->
+                                <% if (activity.status !== 'under review') { %>
+                                    <%- editIcon(activity.creatorUser, user, activity._id, false) %>
+                                <% } %>
                                 <%- deleteBtn(activity.creatorUser, user, activity._id) %>
                             </td>
                         </tr>
@@ -59,8 +101,8 @@
                 <thead>
                     <tr>
                         <th>Title</th>
-                        <th>Date</th>
-                        <th>Status</th>
+                        <th>Occurs At</th>
+                        <th>Publication Status</th>
                         <th>Leader's Name</th>
                         <th>RSVPs</th>
                     </tr>
@@ -94,8 +136,7 @@
                 <thead>
                     <tr>
                         <th>Title</th>
-                        <th>Date</th>
-                        <th>Status</th>
+                        <th>Occurs At</th>
                         <th>Leader Name</th>
                         <th><!--Cancel RSVP button--></th>
                     </tr>
@@ -105,7 +146,6 @@
                         <tr>
                             <td><a href="/activities/<%= activity._id %>"><%= activity.title %></a></td>
                             <td><%= formatDate(activity.date, 'MMMM Do YYYY, h:mm a') %></td>
-                            <td><span class="dash-status"><%= activity.status %></span></td>
                             <td><%= activity.leaderName %></td>
                             <td>
                                 <%- cancelRsvpBtn(user.email, activity.rsvps, activity._id, 'Cancel RSVP') %>

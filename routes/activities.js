@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
+const { formatDate } = require('./../helpers/helpers');
 
 const transporter = require('./../config/email');
 const User = require('./../models/User');
@@ -10,34 +11,47 @@ const Activity = require('../models/Activity');
 // @route   GET /activities/my-activities
 router.get('/my-activities', ensureAuthenticated, async (req, res) => {
     try {
-        const activitiesCreated = await Activity.find({ creatorUser: req.user.id })
+        const activities = await Activity.find({ })
             .populate('leaderUser')
             .populate('creatorUser')
             .sort({ date: 'asc', time: 'asc' })
             .lean();
-        const activitiesLeading = await Activity.find({ leaderUser: req.user.id })
-            .populate('leaderUser')
-            .populate('creatorUser')
-            .sort({ date: 'asc', time: 'asc' })
-            .lean();
-        const activitiesAttending = [];
 
-        // Find activities that the logged in user RSVP'd they're going to and sort them in ascending order by date
-        const activities = await Activity.find({ }).populate('leaderUser').populate('creatorUser').lean();
+        let activitiesCreated = [];
+        let activitiesLeading = [];
+        let activitiesAttending = [];
+        let activitiesToReview = [];
+
         activities.forEach(activity => {
-            const found = activity.rsvps.find(rsvp => rsvp.email == req.user.email);
-            if (found) {
+            // Check if the user is an admin and if the activity is under review (needing approval)
+            if (req.user.admin && activity.status === 'under review') {
+                activitiesToReview.push(activity);
+            }
+
+            // Check if the logged in user created this activity
+            if (activity.creatorUser._id == req.user.id) {
+                activitiesCreated.push(activity);
+            }
+
+            // Check if the logged in user is leading this activity
+            if (activity.leaderUser && activity.leaderUser._id == req.user.id) {
+                activitiesLeading.push(activity);
+            }
+
+            // Check if the logged in user RSVPd to this activity
+            if (activity.rsvps.find(rsvp => rsvp.email == req.user.email)) {
                 activitiesAttending.push(activity);
             }
         });
-        activitiesAttending.sort((a, b) => { return a.date-b.date });
 
         res.render('activities/my-activities', {
             user: req.user,
             activitiesCreated,
             activitiesLeading,
-            activitiesAttending
+            activitiesAttending,
+            activitiesToReview
         });
+
     } catch (e) {
         console.log(e);
         req.flash('error_msg', "We're sorry. Something went wrong.");
@@ -100,8 +114,7 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
             res.redirect('/');
         }
     } else { // Validation passed
-        // Create and save the new activity
-        //const expirationDate = new Date(`${date}T${time}`);
+        // Create and save the new activity (to be reviewed)
         const expirationDate = new Date(date);
         expirationDate.setDate(expirationDate.getDate() + 1);
 
@@ -110,6 +123,7 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
             date: new Date(`${date}T${time}`),
             leaderName,
             leaderUser: leaderUsername ? leaderUser._id : null,
+            status: req.user.admin ? 'published' : 'under review',
             body,
             creatorUser: req.user.id,
             expireAt: expirationDate,
@@ -117,9 +131,35 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
 
         newActivity.save()
             .then(activity => {
-                // Redirect to the my activities page with a success message (stored in the session)
-                req.flash('success_msg', 'The activity was successfully created.');
-                res.redirect('/activities/my-activities');
+                // If the user who is submitting the activity is not admin, send an email to admin to alert them to review the activity. Otherwise, just send a success message that it has been published
+                if (!req.user.admin) {
+                    // Potential TODO: Send email to ALL admin (not just Olivia)
+                    const emailContent = {
+                        from: `${process.env.EMAIL}`,
+                        to: `${process.env.EMAIL_ADMIN}`,
+                        subject: `Activity Submitted for Review on Connecting With Parma Heights Seniors - Virtual Events`,
+                        html: `
+                                <p>A new activity was submitted by ${req.user.name}. Log in to <a href="${process.env.WEBSITE}/activities/my-activities"> Connecting With Parma Heights Seniors - Virtual Activities website</a> to review and approve it for publication.</p>
+                                <p>Website: ${process.env.WEBSITE}/activities/my-activities</p>
+                            `
+                    };
+                
+                    transporter.sendMail(emailContent, (e, data) => {
+                        if (e) {
+                            console.log(e);
+                            req.flash('error_msg', "We're sorry. Something went wrong. Please check the table below to see if your activity was submitted for review. If you do not see it, please try again.");
+                            res.redirect('/activities/my-activities');
+                        } else {
+                            // Redirect to the my activities page with a success message
+                            req.flash('success_msg', 'The activity was successfully submitted for review.');
+                            res.redirect('/activities/my-activities');
+                        }
+                    });
+                } else {
+                    // Redirect to the my activities page with a success message
+                    req.flash('success_msg', 'The activity was successfully published.');
+                    res.redirect('/activities/my-activities');
+                }
             })
             .catch(e => {
                 console.log(e);
@@ -144,10 +184,19 @@ router.get('/:id', async (req, res) => {
             res.redirect('/');
         }
 
+        // If this is a published activity or it is not published but the user still has access, render a page displaying information about the activity
+        if (activity.status == 'published' || (activity.status == 'under review' && (req.user.admin || req.user.id == activity.creatorUser._id || req.user.id == activity.leaderUser._id))) {
+            res.render('activities/show', {
+                activity
+            });
+        // If the user is attempting to view an activity under review that they don't have access to, redirect them and throw an error
+        } else {
+            req.flash('error_msg', "You do not have permission to view this unpublished activity.");
+            res.redirect('/');
+        }
+
         // If the requested activity does exist, render a page with the activity information
-        res.render('activities/show', {
-            activity
-        });
+        
     } catch (e) {
         console.log(e);
         req.flash('error_msg', "This activity could not be found.");
@@ -341,21 +390,10 @@ router.get('/:id/edit', ensureAuthenticated, async (req, res) => {
         }
     
         // If the user is an admin or has access to this activity, render the edit page
-        if (req.user.admin || activity.creatorUser == req.user.id) {
-            try {
-                // Fetch the users for the leader username select field
-                const users = await User.find({}).lean();
-
-                res.render('activities/edit', { 
-                    activity,
-                    users
-                });
-            } catch (e) {
-                console.log(e);
-                req.flash('error_msg', "We're sorry. Something went wrong.");
-                res.redirect('/');
-            }
-
+        if (req.user.admin || (activity.status == 'published' && activity.creatorUser == req.user.id)) {
+            res.render('activities/edit', { 
+                activity,
+            });
         // If a user is attempting to edit an activity that do not have access to, redirect them with an error message
         } else {
             req.flash('error_msg', "You do not have permission to edit this activity.");
@@ -381,16 +419,34 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
             res.redirect('/');
         }
 
-        // If a user is attempting to edit an activity that do not have access to, redirect them with an error message
+        // If the user is an admin or has access to this activity, update it
         if (req.user.admin || activity.creatorUser == req.user.id) {
             activity = await Activity.findOneAndUpdate({ _id: req.params.id }, req.body, {
                 new: true,
                 runValidators: true
             });
 
-            req.flash('success_msg', 'The activity was successfully edited.');
-            res.redirect('/activities/my-activities');
-        // If the user is an admin or has access to this activity, update it
+            // Potential TODO: Send email to ALL admin (not just Olivia)
+            const emailContent = {
+                from: `${process.env.EMAIL}`,
+                to: `${process.env.EMAIL_ADMIN}`,
+                subject: `Activity Edited on Connecting With Parma Heights Seniors - Virtual Events`,
+                html: `
+                        <p>A published activity called ${req.body.title} was edited by ${req.user.name}. Log in to <a href="${process.env.WEBSITE}/activities/${req.params.id}"> Connecting With Parma Heights Seniors - Virtual Activities website</a> to view it.</p>
+                        <p>Website: ${process.env.WEBSITE}/activities/${req.params.id}</p>
+                    `
+            };
+        
+            transporter.sendMail(emailContent, (e, data) => {
+                if (e) {
+                    console.log(e);
+                }
+                // Redirect to the my activities page with a success message
+                req.flash('success_msg', 'The activity was successfully edited.');
+                res.redirect('/activities/my-activities');
+            });
+
+        // If a user is attempting to edit an activity that do not have access to, redirect them with an error message
         } else {
             req.flash('error_msg', "You do not have permission to edit this activity.");
             res.redirect('/');
@@ -398,6 +454,121 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
     } catch (e) {
         console.log(e);
         res.redirect('/activities/my-activities');
+    }
+});
+
+// @desc    Approve activity for publication (by admin)
+// @route   POST /activities/:id/approve
+router.post('/:id/approve', ensureAuthenticated, async (req, res) => {
+    // Publish the activity if this is an admin. Otherwise, redirect and render an error
+    if (req.user.admin) {
+        try {
+            const activity = await Activity.findOneAndUpdate({ _id: req.params.id }, { status: 'published' }, {
+                new: true,
+                runValidators: true
+            }).populate('leaderUser').populate('creatorUser').lean();
+
+            // Send email to admin and activity creator that the activity was approved for publication.
+            // Potential TODO: Send email to ALL admin (not just Olivia)
+            let emailRecipients = `${process.env.EMAIL_ADMIN},`;
+
+            if (activity.creatorUser.email) {
+                emailRecipients += `${activity.creatorUser.email},`;
+            }
+            
+            const emailContent = {
+                from: `${process.env.EMAIL}`,
+                to: `${emailRecipients}`,
+                subject: `Activity Approved on Connecting With Parma Heights Seniors - Virtual Events`,
+                html: `
+                        <p>Congratulations! Your activity called "${activity.title}" was published on Connecting With Parma Heights Seniors - Virtual Events. Other users may now view it and sign up. Log in to <a href="${process.env.WEBSITE}/activities/${req.params.id}"> Connecting With Parma Heights Seniors - Virtual Activities website</a> to view it.</p>
+                        <p>Website: ${process.env.WEBSITE}/activities/${req.params.id}</p>
+                    `
+            };
+        
+            transporter.sendMail(emailContent, (e, data) => {
+                if (e) {
+                    console.log(e);
+                }
+                // Redirect to the my activities page with a success message
+                req.flash('success_msg', 'The activity was successfully published.');
+                res.redirect('/activities/my-activities');
+            });
+        } catch (e) {
+            console.log(e);
+            req.flash('error_msg', "We're sorry. Something went wrong.");
+            res.redirect('/');
+        }
+    } else {
+        req.flash('error_msg', "You do not have permission to publish this activity.");
+        res.redirect('/');
+    }
+});
+
+// @desc    Reject activity for publication (by admin)
+// @route   POST /activities/:id/reject
+router.post('/:id/reject', ensureAuthenticated, async (req, res) => {
+    // Delete the activity and send an email to the creator if this is an admin. Otherwise, redirect and render an error
+    if (req.user.admin) {
+        try {
+            // Find the activity to delete
+            const activity = await Activity.findOne({ _id: req.params.id }).lean();
+            
+            // Ensure the activity to delete exists; otherwise redirect with an error
+            if (!activity) {
+                req.flash('error_msg', "The requested activity does not exist.");
+                res.redirect('/activities/my-activities');
+            } else {
+                // Delete the activity and send an email
+                try {
+                    await Activity.deleteOne({ _id: req.params.id });
+                    // Send email to activity creator that the activity (with the activity details) was rejected with explanation. CC admin.
+                    // Potential TODO: Send email to ALL admin (not just Olivia)
+                    let emailRecipients = `${process.env.EMAIL_ADMIN},`;
+
+                    if (activity.creatorUser.email) {
+                        emailRecipients += `${activity.creatorUser.email},`;
+                    }
+                    
+                    const emailContent = {
+                        from: `${process.env.EMAIL_ADMIN}`,
+                        to: `${emailRecipients}`,
+                        subject: `Activity Rejected on Connecting With Parma Heights Seniors - Virtual Events`,
+                        html: `
+                                <p>Apologies! Your activity called "${activity.title}" was rejected for publication on Connecting With Parma Heights Seniors - Virtual Events. Please review the feedback below. Reply to this email if you have any questions.</p>
+                                <br>
+                                <h3>Submitted Activity Details:</h3>
+                                <p><b>Title:</b> ${activity.title}</p>
+                                <p><b>Date: </b> ${formatDate(activity.date, 'MMMM Do YYYY, h:mm a')}</p>
+                                <p><b>Leader Name:</b> ${activity.leaderUser.name}</p>
+                                <p><b>Description:</b> ${activity.body}</p>
+                                <h3>Feedback/Reasons for the Rejection:</h3>
+                                <p>${req.body.feedback}</p>
+                            `
+                    };
+                
+                    transporter.sendMail(emailContent, (e, data) => {
+                        if (e) {
+                            console.log(e);
+                        }
+                        // Redirect to the my activities page with a success message
+                        req.flash('success_msg', 'The activity was successfully rejected for publication.');
+                        res.redirect('/activities/my-activities');
+                    });
+                } catch (e) {
+                    console.log(e);
+                    req.flash('error_msg', "We're sorry. Something went wrong.");
+                    res.redirect('/activities/my-activities');
+                }
+            }
+        } catch (e) {
+            console.log(e);
+            req.flash('error_msg', "We're sorry. Something went wrong.");
+            res.redirect('/activities/my-activities');
+        }
+    } else {
+        req.flash('error_msg', "You do not have permission to reject this activity for publication.");
+        res.redirect('/');
     }
 });
 

@@ -3,9 +3,11 @@
 
     <% if (user) { %>
         <div class="row">
-            <div class="col">
-                <%- editIcon(activity.creatorUser, user, activity._id, false) %>
-            </div>
+            <% if (activity.status == 'published' || user.admin) { %>
+                <div class="col">
+                    <%- editIcon(activity.creatorUser, user, activity._id, false) %>
+                </div>
+            <% } %>
             <div class="col">
                 <%- deleteBtn(activity.creatorUser, user, activity._id) %>
             </div>
@@ -28,11 +30,25 @@
             <span class="card-title"><b>Description:</b> <%= stripTags(activity.body) %></span>
         </div>
         <div class="card-action">
-            <div class="row">
-                <div class="col">
-                    <a href="/sign-up" class="btn indigo darken-3">Sign Up</a>
+            <% if (activity.status == 'published') { %>
+                <div class="row">
+                    <div class="col">
+                        <a href="/sign-up" class="btn indigo darken-3">Sign Up</a>
+                    </div>
                 </div>
-            </div>
+            <% } %>
+            <% if (user.admin) { %>
+                <div class="row">
+                    <div class="col">
+                        <%- approveBtn(user, activity._id) %>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <%- rejectBtn(user, activity._id) %>
+                    </div>
+                </div>
+            <% } %>
             <div class="row">
                 <div class="col">
                     <a href="/" class="btn orange">View Other Activities</a>

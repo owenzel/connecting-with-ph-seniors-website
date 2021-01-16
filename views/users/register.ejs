@@ -1,4 +1,4 @@
-<%- include ("./../partials/messages"); %>
+<%- include("./../partials/messages"); %>
 
 <div class="container">
     <h4>Register</h4>
@@ -81,12 +81,7 @@
 
             <div class="row">
                 <h6>Waiver for Participation</h6>
-                <p><b>Your digital signature below signifies your agreement to the following:</b></p>
-                <p>I understand that participation in virtual activities over the phone, computer, tablet, or other technological device includes, but is not limited to, technology set-up, games, puzzles, crafts, reading, exercise, and discussion. I understand that participation requires physical and mental exertion.</p>
-                <p>As is the case with any activity, the risk of injury, even serious or disabling, is always present and cannot be entirely eliminated. I will progress at my own pace. If at any point I feel overexertion, pain, or discomfort, I will respect my body’s limitations and I will rest before continuing to participate.</p>
-                <p>No virtual activity is a substitute for medical attention, examination, diagnoses or treatment. Virtual activities are not recommended and may not be safe under certain medical conditions. I affirm that I alone am responsible to decide to participate in virtual activities. I hereby agree to irrevocably release and waive any claims that I have now or hereafter may have against Olivia Wenzel, other virtual event facilitators, and the Parma Heights Senior Center or its employees.</p>
-                <p>I acknowledge that participation in virtual activities exposes me to a possible risk of personal injury. I am fully aware of this risk and hereby release the program leader Olivia Wenzel, other virtual event facilitators, and the Parma Heights Senior Center and its employees from any and all liability, negligence, or other claims arising from or in any way connected with my participation in virtual activities.</p>
-                <p>I shall not now or at any time in the future bring any legal action against Olivia Wenzel, other virtual event facilitators, and the Parma Heights Senior Center and its employees. This waiver is binding on me, my heirs, my spouse, my children, my legal representatives, my successors, and my assigns. I am physically fit to participate in virtual activities, and a licensed doctor has verified my physical condition for participation in the types of virtual activities I participate in.</p>
+                <%- include("./../partials/waiver_text"); %>
               
                 <div class="input-field">
                   <input
