@@ -37,7 +37,7 @@
                     </div>
                 </div>
             <% } %>
-            <% if (user.admin) { %>
+            <% if (user && user.admin) { %>
                 <div class="row">
                     <div class="col">
                         <%- approveBtn(user, activity._id) %>

@@ -60,7 +60,7 @@
                                     name="selectedActivities"
                                     value="<%= activity._id %>"
                                 >
-                              <span class="black-text"><%= activity.title %></span>
+                              <span class="black-text"><b><%= activity.title %></b> (<%= formatDate(activity.date, 'MMMM Do YYYY, h:mm a') %>)</span>
                             </label>
                           </p>
                     <% }); %>
