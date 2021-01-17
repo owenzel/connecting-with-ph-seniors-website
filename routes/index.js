@@ -11,7 +11,7 @@ const questionCategories = [{ text: 'A Specific Activity', value: 'activity' }, 
 // @route   GET /
 router.get('/', async (req, res) => {
     try {
-        const activities = await Activity.find({ status: 'published' })
+        const activities = await Activity.find({$or:[{status: 'published'}, {status: 'published and under review'}]})
             .populate('leaderUser')
             .populate('creatorUser')
             .sort({ date: 'asc', time: 'asc' })
@@ -156,7 +156,7 @@ router.post('/questions', async (req, res) => {
 // @route   GET /sign-up
 router.get('/sign-up', async (req, res) => {
     try {
-        const activities = await Activity.find({ status: 'published' })
+        const activities = await Activity.find({ status: 'published' || 'published and under review' })
             .populate('leaderUser')
             .populate('creatorUser')
             .sort({ date: 'asc', time: 'asc' })
@@ -193,7 +193,7 @@ router.post('/sign-up', async (req, res) => {
 
         selectedActivities.forEach(async activity => {
             try {
-                if (!await Activity.findOne({ _id: activity, status: 'published' }).lean()) {
+                if (!await Activity.findOne({ _id: activity, status: 'published' || 'published and under review' }).lean()) {
                     errors.push({ msg: 'Please submit valid activities. '});
                 }
             } catch (e) {
@@ -207,7 +207,7 @@ router.post('/sign-up', async (req, res) => {
     // If there are errors, re-render the page with the errors
     if (errors.length > 0) {
         try {
-            const activities = await Activity.find({ status: 'published' })
+            const activities = await Activity.find({ status: 'published' || 'published and under review' })
                 .populate('leaderUser')
                 .populate('creatorUser')
                 .sort({ createdAt: 'desc' })

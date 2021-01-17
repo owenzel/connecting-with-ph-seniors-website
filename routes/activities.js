@@ -24,7 +24,7 @@ router.get('/my-activities', ensureAuthenticated, async (req, res) => {
 
         activities.forEach(activity => {
             // Check if the user is an admin and if the activity is under review (needing approval)
-            if (req.user.admin && activity.status === 'under review') {
+            if (req.user.admin && (activity.status == 'unpublished and under review' || activity.status == 'published and under review')) {
                 activitiesToReview.push(activity);
             }
 
@@ -123,7 +123,7 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
             date: new Date(`${date}T${time}`),
             leaderName,
             leaderUser: leaderUsername ? leaderUser._id : null,
-            status: req.user.admin ? 'published' : 'under review',
+            status: req.user.admin ? 'published' : 'unpublished and under review',
             body,
             creatorUser: req.user.id,
             expireAt: expirationDate,
@@ -185,7 +185,7 @@ router.get('/:id', async (req, res) => {
         }
 
         // If this is a published activity or it is not published but the user still has access, render a page displaying information about the activity
-        if (activity.status == 'published' || (activity.status == 'under review' && (req.user.admin || req.user.id == activity.creatorUser._id || req.user.id == activity.leaderUser._id))) {
+        if (activity.status == 'published' || activity.status == 'published and under review' || (activity.status == 'unpublished and under review' && (req.user.admin || req.user.id == activity.creatorUser._id || req.user.id == activity.leaderUser._id))) {
             res.render('activities/show', {
                 activity
             });
@@ -390,7 +390,7 @@ router.get('/:id/edit', ensureAuthenticated, async (req, res) => {
         }
     
         // If the user is an admin or has access to this activity, render the edit page
-        if (req.user.admin || (activity.status == 'published' && activity.creatorUser == req.user.id)) {
+        if (req.user.admin || ((activity.status == 'published' || activity.status == 'published and under review') && activity.creatorUser == req.user.id)) {
             res.render('activities/edit', { 
                 activity,
             });
@@ -410,6 +410,8 @@ router.get('/:id/edit', ensureAuthenticated, async (req, res) => {
 // @desc    Update activity
 // @route   PUT /activities/:id
 router.put('/:id', ensureAuthenticated, async (req, res) => {
+    const { title, body } = req.body;
+
     try {
         let activity = await Activity.findById(req.params.id).lean();
 
@@ -421,10 +423,20 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
 
         // If the user is an admin or has access to this activity, update it
         if (req.user.admin || activity.creatorUser == req.user.id) {
-            activity = await Activity.findOneAndUpdate({ _id: req.params.id }, req.body, {
-                new: true,
-                runValidators: true
-            });
+            activity = await Activity.findOneAndUpdate(
+                { 
+                    _id: req.params.id 
+                },
+                {
+                    title: title,
+                    body: body,
+                    status: req.user.admin ? 'published' : 'published and under review'
+                }, 
+                {
+                    new: true,
+                    runValidators: true
+                }
+            );
 
             // Potential TODO: Send email to ALL admin (not just Olivia)
             const emailContent = {
@@ -481,7 +493,7 @@ router.post('/:id/approve', ensureAuthenticated, async (req, res) => {
                 to: `${emailRecipients}`,
                 subject: `Activity Approved on Connecting With Parma Heights Seniors - Virtual Events`,
                 html: `
-                        <p>Congratulations! Your activity called "${activity.title}" was published on Connecting With Parma Heights Seniors - Virtual Events. Other users may now view it and sign up. Log in to <a href="${process.env.WEBSITE}/activities/${req.params.id}"> Connecting With Parma Heights Seniors - Virtual Activities website</a> to view it.</p>
+                        <p>Congratulations! Your new submission or your edits for the activity called "${activity.title}" were approved for publication on Connecting With Parma Heights Seniors - Virtual Events. Other users may view it and sign up. Log in to <a href="${process.env.WEBSITE}/activities/${req.params.id}"> Connecting With Parma Heights Seniors - Virtual Activities website</a> to view it.</p>
                         <p>Website: ${process.env.WEBSITE}/activities/${req.params.id}</p>
                     `
             };
@@ -535,7 +547,7 @@ router.post('/:id/reject', ensureAuthenticated, async (req, res) => {
                         to: `${emailRecipients}`,
                         subject: `Activity Rejected on Connecting With Parma Heights Seniors - Virtual Events`,
                         html: `
-                                <p>Apologies! Your activity called "${activity.title}" was rejected for publication on Connecting With Parma Heights Seniors - Virtual Events. Please review the feedback below. Reply to this email if you have any questions.</p>
+                                <p>Apologies! Your new submission or your edits for the activity called "${activity.title}" was rejected for publication on Connecting With Parma Heights Seniors - Virtual Events. Please review the feedback below. Reply to this email if you have any questions.</p>
                                 <br>
                                 <h3>Submitted Activity Details:</h3>
                                 <p><b>Title:</b> ${activity.title}</p>

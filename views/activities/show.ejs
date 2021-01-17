@@ -3,7 +3,7 @@
 
     <% if (user) { %>
         <div class="row">
-            <% if (activity.status == 'published' || user.admin) { %>
+            <% if (activity.status == 'published' || activity.status == 'published and under review' || user.admin) { %>
                 <div class="col">
                     <%- editIcon(activity.creatorUser, user, activity._id, false) %>
                 </div>
@@ -30,7 +30,7 @@
             <span class="card-title"><b>Description:</b> <%= stripTags(activity.body) %></span>
         </div>
         <div class="card-action">
-            <% if (activity.status == 'published') { %>
+            <% if (activity.status == 'published' || activity.status == 'published and under review') { %>
                 <div class="row">
                     <div class="col">
                         <a href="/sign-up" class="btn indigo darken-3">Sign Up</a>

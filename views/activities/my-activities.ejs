@@ -21,6 +21,7 @@
                     <thead>
                         <tr>
                             <th>Title</th>
+                            <th>Status</th>
                             <th>Created On</th>
                             <th>Occurs On</th>
                             <th>Leader's Name</th>
@@ -32,6 +33,7 @@
                         <% activitiesToReview.forEach(function(activity) { %>
                             <tr>
                                 <td><a href="/activities/<%= activity._id %>"><%= activity.title %></a></td>
+                                <td><%= activity.status %></td>
                                 <td><%= formatDate(activity.createdAt, 'MMMM Do YYYY, h:mm a') %></td>
                                 <td><%= formatDate(activity.date, 'MMMM Do YYYY, h:mm a') %></td>
                                 <td><%= activity.leaderName %></td>
@@ -81,7 +83,7 @@
                             </td>
                             <td>
                                 <!--If the activity has been published, they may edit it. Otherwise, they may only delete it.-->
-                                <% if (activity.status !== 'under review') { %>
+                                <% if (activity.status !== 'unpublished and under review') { %>
                                     <%- editIcon(activity.creatorUser, user, activity._id, false) %>
                                 <% } %>
                                 <%- deleteBtn(activity.creatorUser, user, activity._id) %>

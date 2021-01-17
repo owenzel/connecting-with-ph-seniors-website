@@ -20,8 +20,8 @@ const ActivitySchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        default: 'under review',
-        enum: [ 'under review', 'published' ]
+        default: 'unpublished and under review',
+        enum: [ 'unpublished and under review', 'published and under review', 'published' ]
     },
     body: {
         type: String,
