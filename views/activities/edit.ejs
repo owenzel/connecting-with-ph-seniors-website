@@ -9,7 +9,7 @@
     </div>
     
     <div class="row">
-        <form action="/activities/<%= activity._id %>" method="POST" class="col s12">
+        <form action="/activities/<%= activity._id %>" method="POST" class="col s12" id="activityForm">
             <input type="hidden" name="_method" value="PUT">
             <div class="row">
                 <div class="input-field">
@@ -21,9 +21,12 @@
             <div class="row">
                 <div class="input-field">
                     <h5>Describe the Activity.</h5>
-                    <textarea id="body" name="body"><%= activity.body %></textarea>
+                    <!-- <textarea id="body" name="body"></textarea> -->
+                    <div id="editor" name="editor"><%- activity.body %></div>
                 </div>
             </div>
+
+            <input type="hidden" name="body">
 
             <div class="row">
                 <button type="submit" class="btn"><i class="fas fa-check"></i> <%= user.admin ? 'Publish Edits' : 'Submit Edits for Review' %></button>

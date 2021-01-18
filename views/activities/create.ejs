@@ -5,7 +5,7 @@
     <h3>Create an Activity Post</h3>
     <p>Newly created activities are reviewed by website administrators before they are published. You will receive an email (if you registered with one) after your submission has been reviewed. You can also view the publication status of this activity in your <a href="/activities/my-activities">My Activities</a> page after you submit it.</p>
     <div class="row">
-        <form action="/activities/create" method="POST" class="col s12">
+        <form action="/activities/create" method="POST" class="col s12" id="activityForm">
             <div class="row">
                 <div class="input-field">
                     <input
@@ -63,9 +63,12 @@
             <div class="row">
                 <div class="input-field">
                     <h5>Describe the Activity.</h5>
-                    <textarea id="body" name="body"></textarea>
+                    <!-- <textarea id="body" name="body"></textarea> -->
+                    <div id="editor" name="editor"></div>
                 </div>
             </div>
+
+            <input type="hidden" name="body">
 
             <div class="row">
                 <button type="submit" class="btn"><i class="fas fa-check"></i> <%= user.admin ? 'Publish' : 'Submit for Review' %></button>

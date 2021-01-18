@@ -27,7 +27,7 @@
                     <% } %>
                 </span>
             <% } %>
-            <span class="card-title"><b>Description:</b> <%= stripTags(activity.body) %></span>
+            <span class="card-title"><b>Description:</b> <%- activity.body %></span>
         </div>
         <div class="card-action">
             <% if (activity.status == 'published' || activity.status == 'published and under review') { %>
@@ -37,7 +37,7 @@
                     </div>
                 </div>
             <% } %>
-            <% if (user && user.admin) { %>
+            <% if (user && user.admin && activity.status != 'published') { %>
                 <div class="row">
                     <div class="col">
                         <%- approveBtn(user, activity._id) %>
