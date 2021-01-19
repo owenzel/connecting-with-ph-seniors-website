@@ -54,13 +54,14 @@
                     <% activities.forEach(function(activity) { %>
                         <p>
                             <label>
-                                <input
-                                    class="filled-in"
-                                    type="checkbox"
-                                    name="selectedActivities"
-                                    value="<%= activity._id %>"
-                                >
-                              <span class="black-text"><b><%= activity.title %></b> (<%= formatDate(activity.date, 'MMMM Do YYYY, h:mm a') %>)</span>
+                                    <input
+                                        class="filled-in signUpCheckbox"
+                                        type="checkbox"
+                                        name="selectedActivities"
+                                        value="<%= activity._id %>"
+                                        <%- signUps.find(preSelected => preSelected._id == activity._id) ? checked="checked" : '' %>
+                                    >
+                                <span class="black-text"><b><%= activity.title %></b> (<%= formatDate(activity.date, 'MMMM Do YYYY, h:mm a') %>)</span>
                             </label>
                           </p>
                     <% }); %>

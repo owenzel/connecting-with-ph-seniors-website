@@ -44,11 +44,12 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // EJS helpers
-const { getDateRangeStartingToday, formatDate, stripTags, truncate, editIcon, deleteBtn, cancelRsvpBtn, approveBtn, rejectBtn } = require('./helpers/helpers');
+const { getDateRangeStartingToday, formatDate, stripTags, truncate, addToCart, editIcon, deleteBtn, cancelRsvpBtn, approveBtn, rejectBtn } = require('./helpers/helpers');
 app.locals.getDateRangeStartingToday = getDateRangeStartingToday;
 app.locals.formatDate = formatDate;
 app.locals.stripTags = stripTags;
 app.locals.truncate = truncate;
+app.locals.addToCart = addToCart;
 app.locals.editIcon = editIcon;
 app.locals.deleteBtn = deleteBtn;
 app.locals.cancelRsvpBtn = cancelRsvpBtn;
@@ -61,10 +62,11 @@ app.set('view engine', 'ejs');
 
 // Express Session middleware
 app.use(session({
-    secret: 'secret',
+    secret: process.env.SESSION_SECRET,
     resave: true,
     saveUninitialized: true,
-    store: new MongoStore({ mongooseConnection: mongoose.connection })
+    store: new MongoStore({ mongooseConnection: mongoose.connection }),
+    cookie: { secure: false }
 }));
 
 // Passport middleware
@@ -80,6 +82,7 @@ app.use((req, res, next) => {
     res.locals.error_msg = req.flash('error_msg');
     res.locals.error = req.flash('error');
     res.locals.user = req.user || null;
+    res.locals.signUps = req.session.signUps || null;
     next();
 });
 

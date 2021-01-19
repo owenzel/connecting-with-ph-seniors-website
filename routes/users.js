@@ -99,6 +99,9 @@ router.post('/register', forwardAuthenticated, (req, res) => {
 // @desc    Process login form
 // @route   POST /login
 router.post('/login', forwardAuthenticated, (req, res, next) => {
+    // Clear the Sign Up Cart
+    req.session.signUps = [];
+
     passport.authenticate('local', {
         successRedirect: '/activities/my-activities',
         failureRedirect: '/users/login',
@@ -109,6 +112,9 @@ router.post('/login', forwardAuthenticated, (req, res, next) => {
 // @desc    Process logout
 // @route   POST /login
 router.get('/logout', ensureAuthenticated, (req, res) => {
+    // Clear the Sign Up Cart
+    req.session.signUps = [];
+
     req.logout();
     req.flash('success_msg', 'You are logged out');
     res.redirect('/users/login');

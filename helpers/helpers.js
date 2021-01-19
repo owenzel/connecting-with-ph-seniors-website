@@ -28,8 +28,19 @@ module.exports = {
     stripTags: function (input) {
         return input.replace(/<(?:.|\n)*?>/gm, '');
     },
+    addToCart: function (activityId, signUps) {
+        if (signUps && signUps.find(signUp => signUp._id == activityId)) {
+            return `<form action="/activities/${activityId}/sign-up" method="POST">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="submit" class="btn red">Remove from Sign Up Cart</button>
+                    </form>`
+        }
+        return `<form action="/activities/${activityId}/sign-up" method="POST">
+                    <button type="submit" class="btn indigo darken-3">Add to Sign Up Cart</button>
+                </form>`;
+    },
     // Edit icon to appear on the activities the given (logged in) user posted
-    editIcon: function (activityCreatorUser, loggedInUser, activityId, floating = true) {
+    editIcon: function (activityCreatorUser, loggedInUser, activityId, floating) {
         if (loggedInUser.admin || activityCreatorUser._id.toString() == loggedInUser._id.toString()) {
             if (floating) {
                 return `<a href="/activities/${activityId}/edit" class="btn-floating halfway-fab blue"><i class="fas fa-edit fa-small"></i></a>`;

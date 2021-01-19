@@ -23,24 +23,27 @@
         M.Sidenav.init(document.querySelector('.sidenav'));
         M.FormSelect.init(document.querySelector('#leaderUsername'));
         M.Modal.init(document.querySelectorAll('.modal'));
+        M.Dropdown.init(document.querySelector('.dropdown-trigger'), { hover: true, constrainWidth: false });
 
-        // Initialize Quill editor
-        let quill = new Quill('#editor', {
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline'],
-                    ['link'],
-                    [{ list: 'ordered' }, { list: 'bullet' }]
-                ]
-            },
-            theme: 'snow'
-        });
+        if (document.querySelector('#editor')) {
+            // Initialize Quill editor
+            let quill = new Quill('#editor', {
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        ['link'],
+                        [{ list: 'ordered' }, { list: 'bullet' }]
+                    ]
+                },
+                theme: 'snow'
+            });
 
-        let activityForm = document.querySelector('#activityForm');
-        activityForm.onsubmit = function() {
-            // Populate hidden input with quill content on submit
-            const about = document.querySelector('input[name=body]');
-            about.value = quill.root.innerHTML;
+            let activityForm = document.querySelector('#activityForm');
+            activityForm.onsubmit = function() {
+                // Populate hidden input with quill content on submit
+                const about = document.querySelector('input[name=body]');
+                about.value = quill.root.innerHTML;
+            }
         }
     </script>
 </body>

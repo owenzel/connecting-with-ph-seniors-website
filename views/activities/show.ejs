@@ -33,7 +33,11 @@
             <% if (activity.status == 'published' || activity.status == 'published and under review') { %>
                 <div class="row">
                     <div class="col">
-                        <a href="/sign-up" class="btn indigo darken-3">Sign Up</a>
+                        <% if (user) { %>
+                            <%- cancelRsvpBtn(user.email, activity.rsvps, activity._id, 'Cancel RSVP', addToCart(activity._id, signUps)) %>
+                        <% } else { %>
+                            <%- addToCart(activity._id, signUps) %>
+                        <% } %>
                     </div>
                 </div>
             <% } %>

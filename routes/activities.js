@@ -204,6 +204,54 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// @desc    Save signed up activity to session (for Sign Up Cart)
+// @route   POST /activities/:id/sign-up
+router.post('/:id/sign-up', async (req, res) => {
+    try {
+        const activity = await Activity.findById(req.params.id).lean();
+        const cartItem = { _id: activity._id, title: activity.title };
+
+        if (!req.session.signUps) {
+            req.session.signUps = [cartItem];
+
+            req.flash('success_msg', "The activity was successfully added to your Sign Up Cart!");
+            res.redirect('/');
+        } else if (!req.session.signUps.find(activity => activity._id == cartItem._id)) {
+            req.session.signUps.push(cartItem);
+
+            req.flash('success_msg', "The activity was successfully added to your Sign Up Cart!");
+            res.redirect('/');
+        } else {
+            req.flash('success_msg', "The activity is already in your Sign Up Cart!");
+            res.redirect('/');
+        }
+        
+    } catch (e) {
+        console.log(e);
+        req.flash('error_msg', "This activity could not be found.");
+        res.redirect('/');
+    }
+});
+
+// @desc    Delete signed up activity from session (for Sign Up Cart)
+// @route   DELETE /activities/:id/sign-up
+router.delete('/:id/sign-up', async (req, res) => {
+    if (req.session.signUps) {
+        console.log('req.session.signUps', req.session.signUps);
+        const index = req.session.signUps.findIndex(signUp => req.params.id == signUp._id);
+        console.log('index', index);
+        if (index != -1) {
+            req.session.signUps.splice(index, 1);
+        }
+
+        req.flash('success_msg', "The activity was successfully removed from your Sign Up Cart!");
+        res.redirect('/');
+    } else {
+        req.flash('error_msg', "We're sorry. Something went wrong.");
+        res.redirect('/');
+    }
+});
+
 // @desc    Show single activity's RSVPs
 // @route   GET /activities/:id/rsvps
 router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {

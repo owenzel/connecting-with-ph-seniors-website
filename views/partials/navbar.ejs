@@ -1,7 +1,29 @@
-  <nav class="teal lighten-1">
+<!-- Dropdown Structure -->
+<ul id="signUpDropdown" class="dropdown-content">
+    <% if (signUps && signUps.length > 0) { %>
+        <% signUps.forEach(activity => { %>
+            <li class="cart-item">
+                <form action="/activities/<%= activity._id %>/sign-up" method="POST">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <div class="row">
+                        <%= activity.title %>
+                        <button type="submit" class="btn red">X</button>
+                    </div>
+                </form>
+                <div class="divider"></div>
+            </li>
+        <% }); %>
+        <li class="cart-item"><a class="waves-effect waves-light btn white-text " href="/sign-up">Sign Up</a></li>
+    <% } else { %>
+        <li>You have not added any activities to your Sign Up Cart.</li>
+    <% } %>
+</ul>
+
+<!-- Navbar -->
+<nav class="teal lighten-1">
     <div class="nav-wrapper container">
-        <a href="#" data-target="mobile-demo" class="sidenav-trigger show-on-large"><i class="fas fa-bars"></i></a>
-        <ul class="sidenav" id="mobile-demo">
+        <a href="" data-target="side-nav" class="sidenav-trigger show-on-large"><i class="fas fa-bars"></i></a>
+        <ul class="sidenav" id="side-nav">
             <li><a href="/">View All Activities</a></li>
             <li><a href="/sign-up">Sign Up for Activities</a></li>
             <li><a href="/questions">Submit a Question</a></li>
@@ -14,7 +36,8 @@
             <% } else { %>
                 <li><a href="/users/register">Register for an Account</a></li>
                 <li><a href="/users/login">Log In</a></li>
-            <% } %> 
+            <% } %>
         </ul>
+        <a class="dropdown-trigger right" data-target="signUpDropdown"><i class="fas fa-shopping-cart"></i></a>
     </div>
 </nav>
