@@ -42,6 +42,10 @@ const ActivitySchema = new mongoose.Schema({
     expireAt: {
         type: Date,
         required: true
+    },
+    imageName: {
+        type: String,
+        default: 'placeholder.png'
     }
 });
 
