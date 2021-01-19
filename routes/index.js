@@ -241,6 +241,9 @@ router.post('/sign-up', async (req, res) => {
                         };
                         await Activity.updateOne({ _id: activity }, { $push: { rsvps: newRsvp } });
 
+                        // Clear the Sign Up Cart in the user's session
+                        req.session.signUps = [];
+
                         req.flash('success_msg', 'You are successfully signed up!');
                         res.redirect('/');
                     } catch (e) {

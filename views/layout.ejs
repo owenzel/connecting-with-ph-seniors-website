@@ -25,6 +25,7 @@
         M.Modal.init(document.querySelectorAll('.modal'));
         M.Dropdown.init(document.querySelector('.dropdown-trigger'), { hover: true, constrainWidth: false });
 
+        // Initialize the Quill editor and handle submitting the description entered in the editor in creating and editing an activity
         if (document.querySelector('#editor')) {
             // Initialize Quill editor
             let quill = new Quill('#editor', {
@@ -39,11 +40,16 @@
             });
 
             let activityForm = document.querySelector('#activityForm');
-            activityForm.onsubmit = function() {
+            activityForm.onsubmit = () => {
                 // Populate hidden input with quill content on submit
                 const about = document.querySelector('input[name=body]');
                 about.value = quill.root.innerHTML;
             }
+        }
+
+        // Open the Sign Up Cart when the user is on the home page
+        if (document.location.pathname == '/') {
+            M.Dropdown.getInstance(document.querySelector('.dropdown-trigger')).open();
         }
     </script>
 </body>

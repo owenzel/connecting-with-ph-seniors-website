@@ -30,12 +30,12 @@ module.exports = {
     },
     addToCart: function (activityId, signUps) {
         if (signUps && signUps.find(signUp => signUp._id == activityId)) {
-            return `<form action="/activities/${activityId}/sign-up" method="POST">
+            return `<form action="/activities/${activityId}/sign-up" method="POST" id="addToCart">
                         <input type="hidden" name="_method" value="DELETE">
                         <button type="submit" class="btn red">Remove from Sign Up Cart</button>
                     </form>`
         }
-        return `<form action="/activities/${activityId}/sign-up" method="POST">
+        return `<form action="/activities/${activityId}/sign-up" method="POST" id="addToCart">
                     <button type="submit" class="btn indigo darken-3">Add to Sign Up Cart</button>
                 </form>`;
     },
