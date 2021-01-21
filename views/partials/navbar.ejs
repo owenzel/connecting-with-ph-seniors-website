@@ -1,25 +1,27 @@
 <!-- Dropdown Structure -->
 <ul id="signUpDropdown" class="dropdown-content">
-    <li class="cart-item">
-        <h5><b>Sign Up Cart:</b></h5>
-    </li>
-    <% if (signUps && signUps.length > 0) { %>
-        <% signUps.forEach(activity => { %>
-            <li class="cart-item">
-                <form action="/activities/<%= activity._id %>/sign-up" method="POST">
-                    <input type="hidden" name="_method" value="DELETE">
-                    <div class="row">
-                        <%= activity.title %>
-                        <button type="submit" class="btn red">X</button>
-                    </div>
-                </form>
-                <div class="divider"></div>
-            </li>
-        <% }); %>
-        <li class="cart-item"><a class="btn white-text " href="/sign-up">Sign Up</a></li>
-    <% } else { %>
-        <li class="cart-item">Your cart is empty.</li>
-    <% } %>
+    <div id="cart">
+        <li class="cart-item">
+            <h5><b>Sign Up Cart:</b></h5>
+        </li>
+        <% if (signUps && signUps.length > 0) { %>
+            <% signUps.forEach(activity => { %>
+                <li class="cart-item">
+                    <form action="/activities/<%= activity._id %>/sign-up" method="POST">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <div class="row">
+                            <%= activity.title %>
+                            <button type="submit" class="btn red">X</button>
+                        </div>
+                    </form>
+                    <div class="divider"></div>
+                </li>
+            <% }); %>
+            <li class="cart-item"><a class="btn white-text " href="/sign-up">Sign Up</a></li>
+        <% } else { %>
+            <li class="cart-item">Your cart is empty.</li>
+        <% } %>
+    </div>
 </ul>
 
 <!-- Navbar -->
@@ -41,6 +43,21 @@
                 <li><a href="/users/login">Log In</a></li>
             <% } %>
         </ul>
-        <a class="dropdown-trigger right" data-target="signUpDropdown">Sign Up Cart <i class="fas fa-shopping-cart"></i></a>
+        <a class="dropdown-trigger right" data-target="signUpDropdown"><i class="fas fa-shopping-cart"></i> Sign Up Cart</a>
+        <!-- <ul class="collapsible right">
+            <li>
+              <div class="collapsible-header">Sign Up Cart <i class="fas fa-shopping-cart"></i></div>
+              <div class="collapsible-body"><span>
+                <% if (signUps && signUps.length > 0) { %>
+                    <% signUps.forEach(activity => { %>
+                        <p><%= activity.title %></p>
+                    <% }); %>
+                    <a class="btn white-text " href="/sign-up">Sign Up</a>
+                <% } else { %>
+                    <p>Your cart is empty.</p>
+                <% } %>
+               </span></div>
+            </li>
+          </ul> -->
     </div>
 </nav>

@@ -1,6 +1,7 @@
 // Credit: https://github.com/bradtraversy/storybooks/blob/master/helpers/hbs.js
 
 const moment = require('moment');
+const transporter = require('../config/email');
 
 module.exports = {
     // Return a list of the start (today) and end (which is a given number of months away from the start) dates

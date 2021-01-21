@@ -44,7 +44,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // EJS helpers
-const { getDateRangeStartingToday, formatDate, stripTags, truncate, addToCart, editIcon, deleteBtn, cancelRsvpBtn, approveBtn, rejectBtn } = require('./helpers/helpers');
+const { getDateRangeStartingToday, formatDate, stripTags, truncate, addToCart, editIcon, deleteBtn, cancelRsvpBtn, approveBtn, rejectBtn } = require('./helpers/ejs-helpers');
 app.locals.getDateRangeStartingToday = getDateRangeStartingToday;
 app.locals.formatDate = formatDate;
 app.locals.stripTags = stripTags;

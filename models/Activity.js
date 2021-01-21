@@ -10,6 +10,10 @@ const ActivitySchema = new mongoose.Schema({
         type: Date,
         required: true
     },
+    reoccurs: {
+        type: Number,
+        default: 0
+    },
     leaderName: {
         type: String,
         required: true

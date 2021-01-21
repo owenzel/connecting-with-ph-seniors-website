@@ -16,6 +16,6 @@ p {
     margin-right: 10px;
 }
 
-.cart-item {
-    margin: 5px;
+#cart {
+    margin: 5px 10px;
 }

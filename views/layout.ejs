@@ -17,13 +17,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <script src="http://multidatespickr.sourceforge.net/jquery-ui.multidatespicker.js"></script>
 
     <script>
         //Initialize Materialize components
         M.Sidenav.init(document.querySelector('.sidenav'));
+        M.FormSelect.init(document.querySelector('#rsvpUsername'));
+        M.FormSelect.init(document.querySelector('#reoccur'));
         M.FormSelect.init(document.querySelector('#leaderUsername'));
         M.Modal.init(document.querySelectorAll('.modal'));
         M.Dropdown.init(document.querySelector('.dropdown-trigger'), { hover: true, constrainWidth: false });
+        M.Collapsible.init(document.querySelectorAll('.collapsible'));
 
         // Initialize the Quill editor and handle submitting the description entered in the editor in creating and editing an activity
         if (document.querySelector('#editor')) {

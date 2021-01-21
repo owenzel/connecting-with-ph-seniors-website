@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
-const { formatDate } = require('./../helpers/helpers');
-
+const { formatDate } = require('../helpers/ejs-helpers');
+const { activityEmail } = require('../helpers/node-helpers');
 const transporter = require('./../config/email');
+
 const User = require('./../models/User');
 const Activity = require('../models/Activity');
 
@@ -59,12 +60,41 @@ router.get('/my-activities', ensureAuthenticated, async (req, res) => {
     }
 });
 
+// @desc    Send email of all activities to the logged in user
+// @route   POST /activities/email-activities
+router.post('/email-activities', ensureAuthenticated, async (req, res) => {
+    try {
+        const activities = await Activity.find({})
+            .populate('leaderUser')
+            .sort({ date: 'asc', time: 'asc' })
+            .lean();
+
+        const emailTitle = `Upcoming Activities on Connecting With Parma Heights Seniors - Virtual Events as of ${formatDate(Date.now(), 'MMMM Do YYYY, h:mm a')}`;
+
+        const success = await activityEmail(emailTitle, req.user.email, activities);
+        
+        if (success) {
+            req.flash('success_msg', 'The email with upcoming activities was successfully sent.');
+            res.redirect('/');
+        } else {
+            req.flash('error_msg', "We're sorry. Something went wrong.");
+            res.redirect('/');
+        }
+    } catch (e) {
+        console.log(e);
+        req.flash('error_msg', "We're sorry. Something went wrong.");
+        res.redirect('/');
+    }
+});
+
 // @desc    Show create activity page
 // @route   GET /activities/create
 router.get('/create', ensureAuthenticated, async (req, res) => {
     try {
         const users = await User.find({}).lean();
-        res.render('activities/create', { users });
+        res.render('activities/create', { 
+            users 
+        });
     } catch (e) {
         console.log(e);
         req.flash('error_msg', "We're sorry. Something went wrong.");
@@ -257,6 +287,7 @@ router.delete('/:id/sign-up', async (req, res) => {
 router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
     try {
         const activity = await Activity.findById(req.params.id).lean();
+        const users = await User.find({}).lean();
         
         // If the requested activity does not exist, redirect them and throw an error
         if (!activity) {
@@ -264,12 +295,13 @@ router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
             res.redirect('/my-activities');
         }
 
-        // If a user is attempting to view the RSVPs for an activity that do not have access to, redirect them with an error message
+        // If the user is an admin or has access to this activity, render a page with the list of RSVPs
         if (req.user.admin || activity.creatorUser == req.user.id || activity.leaderUser == req.user.id) {
             res.render('activities/rsvps', {
-                activity
+                activity,
+                users
             });
-        // If the user is an admin or has access to this activity, render a page with the list of RSVPs
+        // If a user is attempting to view the RSVPs for an activity that do not have access to, redirect them with an error message
         } else {
             req.flash('error_msg', "You do not have permission to edit this activity.");
             res.redirect('/');
@@ -600,7 +632,7 @@ router.post('/:id/reject', ensureAuthenticated, async (req, res) => {
                                 <h3>Submitted Activity Details:</h3>
                                 <p><b>Title:</b> ${activity.title}</p>
                                 <p><b>Date: </b> ${formatDate(activity.date, 'MMMM Do YYYY, h:mm a')}</p>
-                                <p><b>Leader Name:</b> ${activity.leaderUser.name}</p>
+                                <p><b>Leader Name:</b> ${activity.leaderUser ? activity.leaderUser.name : activity.leaderName}</p>
                                 <p><b>Description:</b> ${activity.body}</p>
                                 <h3>Feedback/Reasons for the Rejection:</h3>
                                 <p>${req.body.feedback}</p>

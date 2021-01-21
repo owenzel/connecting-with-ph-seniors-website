@@ -81,7 +81,6 @@
     <div class="section">
         <div class="row">
             <h5>Add an RSVP</h5>
-            <p>NOTE: Please only use this form to submit an RSVP for someone who does NOT have an account. Anyone who has an account should log in and RSVP through their own account.</p>
         </div>
 
         <div class="row">
@@ -124,6 +123,13 @@
                         <label for="phone">What is Their Phone Number?</label>
                     </div>
                 </div>
+
+                <ul class="collapsible">
+                    <li>
+                      <div class="collapsible-header">By clicking "Add RSVP", you certify that the person you're signing up agrees to these terms. (Click here to see the terms.)</div>
+                      <div class="collapsible-body"><span><%- include("./../partials/waiver_text"); %></span></div>
+                    </li>
+                  </ul>
     
                 <div class="row">
                     <button type="submit" class="waves-effect waves-light btn"><i class="fas fa-plus right"></i> Add RSVP</button>

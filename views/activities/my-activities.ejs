@@ -9,6 +9,11 @@
         <div class="row">
             <%- include ("./../partials/home_btn"); %>
         </div>
+        <div class="row">
+            <form action="/activities/email-activities" method="POST">
+                <button type="submit" class="waves-effect waves-light btn pink lighten-3"><i class="fas fa-paper-plane"></i> Email Me a List of All Upcoming Activities</button>
+            </form>
+        </div>
     </div>
 
     <% if (user.admin) { %>

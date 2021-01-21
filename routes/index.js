@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-
 const transporter = require('./../config/email');
+const { activityEmail } = require('../helpers/node-helpers');
+
 const Activity = require('../models/Activity');
 const User = require('./../models/User');
 
@@ -11,7 +12,7 @@ const questionCategories = [{ text: 'A Specific Activity', value: 'activity' }, 
 // @route   GET /
 router.get('/', async (req, res) => {
     try {
-        const activities = await Activity.find({$or:[{status: 'published'}, {status: 'published and under review'}]})
+        const activities = await Activity.find({ status:{ $in:[ 'published', 'published and under review' ] } })
             .populate('leaderUser')
             .populate('creatorUser')
             .sort({ date: 'asc', time: 'asc' })
@@ -60,10 +61,12 @@ router.post('/questions', async (req, res) => {
             // If the user has a question about a specific activity, get the activity leaders
             if (categories.find(category => category === 'activity')) {
                 try {
-                    activities = await Activity.find({$or:[{status: 'published'}, {status: 'published and under review'}]})
+                    const activities = await Activity.find({ status:{ $in:[ 'published', 'published and under review' ] } })
                         .populate('leaderUser')
                         .populate('creatorUser')
+                        .sort({ date: 'asc', time: 'asc' })
                         .lean();
+
                     res.render('questions', { 
                         questionCategories: null,
                         activities,
@@ -156,7 +159,7 @@ router.post('/questions', async (req, res) => {
 // @route   GET /sign-up
 router.get('/sign-up', async (req, res) => {
     try {
-        const activities = await Activity.find({$or:[{status: 'published'}, {status: 'published and under review'}]})
+        const activities = await Activity.find({ status:{ $in:[ 'published', 'published and under review' ] } })
             .populate('leaderUser')
             .populate('creatorUser')
             .sort({ date: 'asc', time: 'asc' })
@@ -193,7 +196,7 @@ router.post('/sign-up', async (req, res) => {
 
         selectedActivities.forEach(async activity => {
             try {
-                if (!await Activity.findOne({$or:[{status: 'published'}, {status: 'published and under review'}]}).lean()) {
+                if (!await Activity.findOne({ status:{ $in:[ 'published', 'published and under review' ] } }).lean()) {
                     errors.push({ msg: 'Please submit valid activities. '});
                 }
             } catch (e) {
@@ -207,7 +210,7 @@ router.post('/sign-up', async (req, res) => {
     // If there are errors, re-render the page with the errors
     if (errors.length > 0) {
         try {
-            const activities = await Activity.find({$or:[{status: 'published'}, {status: 'published and under review'}]})
+            const activities = await Activity.find({ status:{ $in:[ 'published', 'published and under review' ] } })
                 .populate('leaderUser')
                 .populate('creatorUser')
                 .sort({ createdAt: 'desc' })
@@ -225,14 +228,13 @@ router.post('/sign-up', async (req, res) => {
         }
     } else { // Validation passed
         // Update the activities with the RSVPs
-        selectedActivities.forEach(async activity => {
-            try {
-                // Make sure the user hasn't already signed up for this activity
-                const savedActivity = await Activity.findOne({ _id: activity }).lean();
-                const found = savedActivity.rsvps.find(rsvp => rsvp.email == email);
-
-                // If the user hasn't already signed up for this activity, save a new rsvp to this activity
-                if (!found) {
+        try {
+            const signedUpActivities = await Activity.find({ _id:{ $in:selectedActivities } })
+            .populate('leaderUser')
+            .lean();
+        
+            signedUpActivities.forEach(async activity => {
+                if (!activity.rsvps.find(rsvp => rsvp.email == email)) {
                     try {
                         const newRsvp = {
                             name,
@@ -240,29 +242,37 @@ router.post('/sign-up', async (req, res) => {
                             phone
                         };
                         await Activity.updateOne({ _id: activity }, { $push: { rsvps: newRsvp } });
-
-                        // Clear the Sign Up Cart in the user's session
-                        req.session.signUps = [];
-
-                        req.flash('success_msg', 'You are successfully signed up!');
-                        res.redirect('/');
                     } catch (e) {
                         console.log(e);
                         req.flash('error_msg', "We're sorry. Something went wrong.");
                         res.redirect('/');
                     }
+                } else {
+                    req.flash('error_msg', `A user with this email is already signed up for ${activity.title}! Please try again!`);
+                    res.redirect(`/`);
                 }
-                // If the new RSVP has already signed up for this activity, redirect the user with an error
-                else {
-                    req.flash('error_msg', "A user with this email is already signed up for this activity!");
-                    res.redirect(`/${activityId}/rsvps`);
-                }
-            } catch (e) {
-                console.log(e);
+            });
+
+            // Clear the activity sign up cart
+            req.session.signUps = [];
+
+            // Send an email to the user with all the activities they signed up for
+            const emailTitle = `Activities You Signed Up For On Connecting With Parma Heights Seniors - Virtual Activities`;
+            const success = await activityEmail(emailTitle, req.user.email, signedUpActivities);
+
+            if (success) {
+                // Clear the Sign Up Cart in the user's session
+                req.flash('success_msg', 'You are successfully signed up!');
+                res.redirect('/');
+            } else {
                 req.flash('error_msg', "We're sorry. Something went wrong.");
                 res.redirect('/');
             }
-        });
+        } catch (err) {
+            console.log(err);
+            req.flash('error_msg', "We're sorry. Something went wrong.");
+            res.redirect('/');
+        }
     }
 });
 

@@ -23,6 +23,7 @@
                         name="date"
                         min=<%= formatDate(availableDates[0], 'YYYY-MM-DD') %>
                         max=<%= formatDate(availableDates[1], 'YYYY-MM-DD') %>
+                        
                     >
                     <label for="date">When Will the Activity Take Place?</label>
                 </div>
@@ -40,6 +41,18 @@
 
             <div class="row">
                 <div class="input-field">
+                    <select id="reoccur" name="reoccur">
+                        <option value="0" selected>This activity does not reoccur.</option>
+                        <% for (let i = 1; i < 5; i++) { %>
+                          <option value="<%= i %>">This activity occurs <%= i %> more time(s) on the same day and time each week.</option>
+                        <% } %>
+                      </select>
+                      <label>How Many Times Does This Activity Reoccur?</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field">
                     <input
                         type="text"
                         name="leaderName"
@@ -51,12 +64,12 @@
             <div class="row">
                 <div class="input-field">
                     <select id="leaderUsername" name="leaderUsername">
-                      <option value="" selected>The Activity Leader Does Not Have an Account</option>
+                      <option value="" selected>The activity leader does not have an account.</option>
                       <% users.forEach(user => { %>
                         <option value="<%= user.username %>"><%= user.username %></option>
                       <% }); %>
                     </select>
-                    <label for="leaderUsername">What is the Activity Leader's Username?</label>
+                    <label>What is the Activity Leader's Username?</label>
                   </div>
             </div>
 
