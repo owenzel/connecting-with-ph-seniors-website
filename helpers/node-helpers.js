@@ -21,16 +21,18 @@ module.exports = {
             subject: `${emailTitle}`,
             html: `${messageBody}`
         };
-    
-        transporter.sendMail(emailContent, (e, data) => {
-            if (e) {
-                console.log(e);
-                return false;
-            } else {
-                // Redirect to the my activities page with a success message
-                return true;
-            }
-        });
+
+        try {
+            await transporter.sendMail(emailContent, (e, data) => {
+                if (e) console.log(e);
+            });
+
+            return true;
+
+        } catch (e) {
+            console.log(e);
+            return false;
+        }
     },
     fetchPublishedActivites: async function() {
         try {
@@ -69,6 +71,10 @@ module.exports = {
     errorRedirect: function(req, res, error, redirect, msg = "We're sorry. Something went wrong.") {
         console.log(error);
         req.flash('error_msg', msg);
-        res.redirect(`${redirect}`);
+        res.redirect(redirect);
+    },
+    successRedirect: function(req, res, msg, redirect) {
+        req.flash('success_msg', msg);
+        res.redirect(redirect);
     }
 }

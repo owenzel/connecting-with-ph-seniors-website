@@ -17,10 +17,10 @@
                     <div class="divider"></div>
                 </li>
             <% }); %>
-            <li class="cart-item"><a class="btn white-text " href="/sign-up">Sign Up</a></li>
         <% } else { %>
             <li class="cart-item">Your cart is empty.</li>
         <% } %>
+        <li class="cart-item"><a class="btn white-text" href="/sign-up">Proceed to Sign Up</a></li>
     </div>
 </ul>
 
@@ -44,20 +44,5 @@
             <% } %>
         </ul>
         <a class="dropdown-trigger right" data-target="signUpDropdown"><i class="fas fa-shopping-cart"></i> Sign Up Cart</a>
-        <!-- <ul class="collapsible right">
-            <li>
-              <div class="collapsible-header">Sign Up Cart <i class="fas fa-shopping-cart"></i></div>
-              <div class="collapsible-body"><span>
-                <% if (signUps && signUps.length > 0) { %>
-                    <% signUps.forEach(activity => { %>
-                        <p><%= activity.title %></p>
-                    <% }); %>
-                    <a class="btn white-text " href="/sign-up">Sign Up</a>
-                <% } else { %>
-                    <p>Your cart is empty.</p>
-                <% } %>
-               </span></div>
-            </li>
-          </ul> -->
     </div>
 </nav>

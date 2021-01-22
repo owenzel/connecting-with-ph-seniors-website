@@ -19,3 +19,8 @@ p {
 #cart {
     margin: 5px 10px;
 }
+
+#cart li, #cart li a {
+    display: inline-flex;
+    align-items: center;
+}

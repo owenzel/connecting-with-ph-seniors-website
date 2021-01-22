@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
 const transporter = require('./../config/email');
+const { successRedirect } = require('../helpers/node-helpers');
 const User = require('./../models/User');
 
 // @desc    Show register page
@@ -28,44 +29,30 @@ router.post('/register', forwardAuthenticated, (req, res) => {
     let errors = [];
 
     // Function for rerendering the page with the submitted information and any errors from validating the submission
-    const reRenderWithErrors = () => res.render('users/register', {
-        errors,
-        name,
-        username,
-        email,
-        phone,
-        password,
-        password2,
-    });
+    const reRenderWithErrors = () => res.render('users/register', { errors, name, username, email, phone, password, password2 });
 
     // Check required fields
-    if (!name || !username || !phone || !password || !password2 || !signature) {
-        errors.push({ msg: 'Please fill in all fields (email is optional but strongly recommended).' });
-    }
+    if (!name || !username || !phone || !password || !password2 || !signature) errors.push({ msg: 'Please fill in all fields (email is optional but strongly recommended).' });
 
     // Check passwords match
-    if (password !== password2) {
-        errors.push({ msg: 'Passwords do not match.' });
-    }
+    if (password !== password2) errors.push({ msg: 'Passwords do not match.' });
 
     // Check password length
-    if (password.length < 6) {
-        errors.push({ msg: 'Password should be at least 6 characters in length.' });
-    }
+    if (password.length < 6) errors.push({ msg: 'Password should be at least 6 characters in length.' });
 
     // If there are errors, re-render the page with the errors and entered information passed in
-    if (errors.length > 0) {
-        reRenderWithErrors();
-    }
+    if (errors.length > 0) reRenderWithErrors();
 
     // If there were no erros in validating the form submission, proceed with registering the user
     else {
-        // Ensure the username isn't already taken. If it is, re-render with an error. Otherwise, proceed with saving them to the database
         User.findOne({ username: username }).then(user => {
+            // If the username is already taken, re-render with an error.
             if (user) {
                 errors.push({ msg: 'Username is not available.'});
                 reRenderWithErrors();
-            } else {
+            }
+            // If the username isn't already taken, proceed with saving them to the database
+            else {
                 // Create a new user with the entered information
                 const newUser = new User({
                     name,
@@ -100,18 +87,13 @@ router.post('/register', forwardAuthenticated, (req, res) => {
                                 
                                     // Send the registration confirmation email to the newly registered user
                                     transporter.sendMail(emailContent, (e, data) => {
-                                        if (e) {
-                                            console.log(e);
-                                        }
+                                        if (e) console.log(e);
                                     });
                                 }
                             })
-                            .then(user => {
-                                // Redirect to the login page with a success message (stored in the session)
-                                req.flash('success_msg', 'You are now registed and can log in.');
-                                res.redirect('/users/login');
-                            })
-                            .catch(err => console.log(err));
+                            // Redirect to the login page with a success message
+                            .then(user => successRedirect(req, res, 'You are now registed and can log in.', '/users/login'))
+                            .catch(e => console.log(e));
                 }));
             }
         });
@@ -124,6 +106,7 @@ router.post('/login', forwardAuthenticated, (req, res, next) => {
     // Clear the Sign Up Cart
     req.session.signUps = [];
 
+    // Authenticate the user
     passport.authenticate('local', {
         successRedirect: '/activities/my-activities',
         failureRedirect: '/users/login',
@@ -137,9 +120,11 @@ router.get('/logout', ensureAuthenticated, (req, res) => {
     // Clear the Sign Up Cart
     req.session.signUps = [];
 
+    // Log the user out via passport
     req.logout();
-    req.flash('success_msg', 'You are logged out.');
-    res.redirect('/users/login');
+
+    // Redirect to the login page with a success message
+    successRedirect(req, res, 'You are logged out.', '/users/login');
 });
 
 module.exports = router;
