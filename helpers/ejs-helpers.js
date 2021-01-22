@@ -1,7 +1,6 @@
 // Credit: https://github.com/bradtraversy/storybooks/blob/master/helpers/hbs.js
 
 const moment = require('moment');
-const transporter = require('../config/email');
 
 module.exports = {
     // Return a list of the start (today) and end (which is a given number of months away from the start) dates
@@ -29,6 +28,7 @@ module.exports = {
     stripTags: function (input) {
         return input.replace(/<(?:.|\n)*?>/gm, '');
     },
+    // Add a given activity to the logged in user's session Activity Sign Up Cart
     addToCart: function (activityId, signUps) {
         if (signUps && signUps.find(signUp => signUp._id == activityId)) {
             return `<form action="/activities/${activityId}/sign-up" method="POST" id="addToCart">
@@ -52,6 +52,7 @@ module.exports = {
             return '';
         }
     },
+    // Return a button with a modal pop up for deleting an activity
     deleteBtn: function(activityCreatorUser, loggedInUser, activityId) {
         if (loggedInUser.admin || activityCreatorUser._id.toString() == loggedInUser._id.toString()) {
             return `<button data-target="confirm-delete-modal" class="waves-effect waves-light btn red modal-trigger"><i class="fas fa-trash"></i> Delete</button>
@@ -71,6 +72,7 @@ module.exports = {
             return '';
         }
     },
+    // Display a button with a modal pop up for canceling an RSVP
     cancelRsvpBtn: function(userEmail, activityRsvps, activityId, btnText, alternative='') {
         if (activityRsvps.find(activity => activity.email == userEmail)) {
             return `<button data-target="confirm-cancel-modal" class="btn red modal-trigger">${btnText}</button>
@@ -90,6 +92,7 @@ module.exports = {
             return alternative;
         }
     },
+    // Display a button with a modal for approving an activity for publication (if the logged in user is an admin)
     approveBtn: function(loggedInUser, activityId) {
         if (loggedInUser.admin) {
             return `<button data-target="confirm-approve-modal" class="btn modal-trigger">Approve</button>
@@ -106,6 +109,7 @@ module.exports = {
             return '';
         }
     },
+    // Display a button with a modal for rejecting an activity for publication (if the logged in user is an admin)
     rejectBtn: function (loggedInUser, activityId) {
         if (loggedInUser.admin) {
             return `<button data-target="confirm-reject-modal" class="btn red modal-trigger">Reject</button>

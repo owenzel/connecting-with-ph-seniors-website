@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
 const { formatDate } = require('../helpers/ejs-helpers');
-const { activityEmail, fetchPublishedActivites, fetchAPublishedActivityById, fetchUsers, errorRedirect, successRedirect } = require('../helpers/node-helpers');
+const { activityEmail, fetchPublishedActivites, fetchAnActivityById, fetchUsers, errorRedirect, successRedirect } = require('../helpers/node-helpers');
 const transporter = require('./../config/email');
 const User = require('./../models/User');
 const Activity = require('../models/Activity');
@@ -99,9 +99,7 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
     let errors = [];
 
     // Check required fields
-    if (!title || !date || !time || !leaderName || !body) {
-        errors.push({ msg: 'Please fill in all fields (Activity Leader Username is optional but strongly recommended if they have an account).' });
-    }
+    if (!title || !date || !time || !leaderName || !body) errors.push({ msg: 'Please fill in all fields (Activity Leader Username is optional but strongly recommended if they have an account).' });
     
     // If a username for an activity leader was entered, find them
     let leaderUser = null;
@@ -194,7 +192,7 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         // Fetch the requested activity based on the id in the URL
-        const activity = await fetchAPublishedActivityById(req.params.id);
+        const activity = await fetchAnActivityById(req.params.id);
         
         // If the requested activity does not exist, redirect them and throw an error
         if (!activity) errorRedirect(req, res, 'Fetch was unsuccessful.', '/', "This activity could not be found.");
@@ -218,7 +216,7 @@ router.get('/:id', async (req, res) => {
 router.post('/:id/sign-up', async (req, res) => {
     try {
         // Fetch the requested activity based on the id in the URL
-        const activity = await fetchAPublishedActivityById(req.params.id);
+        const activity = await fetchAnActivityById(req.params.id);
 
         // If the requested activity does not exist, redirect them and throw an error
         if (!activity) errorRedirect(req, res, 'Fetch was unsuccessful.', '/', "This activity could not be found.");
@@ -267,7 +265,7 @@ router.delete('/:id/sign-up', async (req, res) => {
 router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
     try {
         // Fetch the requested activity based on the id in the URL
-        const activity = await fetchAPublishedActivityById(req.params.id);
+        const activity = await fetchAnActivityById(req.params.id);
 
         // Fetch all users
         const users = await fetchUsers();
@@ -282,7 +280,7 @@ router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
         if (!users) errorRedirect(req, res, "Error with fetching users.", '/');
 
         // If the user is an admin or has access to this activity, render a page with the list of RSVPs
-        if (req.user.admin || activity.creatorUser == req.user.id || activity.leaderUser == req.user.id)  res.render('activities/rsvps', { activity, users });
+        if (req.user.admin || activity.creatorUser == req.user.id || activity.leaderUser == req.user.id) res.render('activities/rsvps', { activity, users });
 
         // If a user is attempting to view the RSVPs for an activity that do not have access to, redirect them with an error message
         errorRedirect(req, res, "The user does not have permission to view this unpublished activity.", '/', "You do not have permission to view this unpublished activity.");
@@ -307,7 +305,7 @@ router.put('/:id/rsvps', ensureAuthenticated, async (req, res) => {
     // Make sure the selected activity was valid
     try {
         // Fetch the requested activity based on the id in the URL
-        const activity = await fetchAPublishedActivityById(req.params.id);
+        const activity = await fetchAnActivityById(req.params.id);
 
         // If the fetch was unsuccessful, redirect them with an error message
         if (!activity) {
@@ -355,7 +353,7 @@ router.put('/:id/rsvps', ensureAuthenticated, async (req, res) => {
 router.delete('/:id/:userEmail/rsvp', ensureAuthenticated, async (req, res) => {
     try {
         // Fetch the requested activity based on the id in the URL
-        let activity = await fetchAPublishedActivityById(req.params.id);
+        let activity = await fetchAnActivityById(req.params.id);
 
         // If the requested activity does not exist, redirect the user with an error message
         if (!activity) {
@@ -431,7 +429,7 @@ router.post('/:id/email-rsvps', ensureAuthenticated, async (req, res) => {
 router.get('/:id/edit', ensureAuthenticated, async (req, res) => {
     try {
         // Fetch the requested activity given the id in the URL
-        const activity = await fetchAPublishedActivityById(req.params.id);
+        const activity = await fetchAnActivityById(req.params.id);
     
         // If the requested activity does not exist, redirect the user with an error message
         if (!activity) {
@@ -460,7 +458,7 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
 
     try {
         // Fetch the requested activity given the id in the URL
-        let activity = await fetchAPublishedActivityById(req.params.id);
+        let activity = await fetchAnActivityById(req.params.id);
 
         // If the requested activity does not exist, redirect the user with an error message
         if (!activity) {
@@ -573,7 +571,7 @@ router.post('/:id/reject', ensureAuthenticated, async (req, res) => {
     // If this is an admin, delete the activity and send an email to the creator
     try {
         // Fetch the requested activity based on the id in the URL
-        const activity = await fetchAPublishedActivityById(req.params.id);
+        const activity = await fetchAnActivityById(req.params.id);
         
         // If the requested activity doesn't exist, redirect them with an error
         if (!activity) {
@@ -632,14 +630,26 @@ router.post('/:id/reject', ensureAuthenticated, async (req, res) => {
 // @route   DELETE /activities/:id
 router.delete('/:id', ensureAuthenticated, async (req, res) => {
     try {
-        // Delete the requested activity based on the id in the URL
-        await Activity.deleteOne({ _id: req.params.id });
+        // Fetch the requested activity given the id in the URL
+        let activity = await fetchAnActivityById(req.params.id);
 
-        // Redirect them to the my-activities page with a success message
-        successRedirect(req, res, 'The activity was successfully deleted.', '/activities/my-activities');
+        // If the requested activity does not exist, redirect the user with an error message
+        if (!activity) {
+            const errorMsg = "This activity could not be found.";
+            errorRedirect(req, res, errorMsg, '/', errorMsg);
+        }
+
+        // If the user is an admin or has access to this activity, delete it
+        if (req.user.admin || activity.creatorUser == req.user.id) {
+            // Delete the requested activity based on the id in the URL
+            await Activity.deleteOne({ _id: req.params.id });
+
+            // Redirect them to the my-activities page with a success message
+            successRedirect(req, res, 'The activity was successfully deleted.', '/activities/my-activities');
+        }
     } catch (e) {
         // If there was an error deleting the activity, redirect them with an error
-        errorRedirect(req, res, e, '/');
+        errorRedirect(req, res, e, '/', "We're sorry. The activity may not have been deleted.");
     }
 });
 

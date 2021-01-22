@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const transporter = require('./../config/email');
-const { activityEmail, fetchPublishedActivites, fetchAPublishedActivityById, errorRedirect, successRedirect } = require('../helpers/node-helpers');
+const { activityEmail, fetchPublishedActivites, fetchAnActivityById, errorRedirect, successRedirect } = require('../helpers/node-helpers');
 const User = require('./../models/User');
 const Activity = require('./../models/Activity');
 
@@ -95,7 +95,7 @@ router.post('/questions', async (req, res) => {
             if (activityInQuestion) {
                 try {
                     // Fetch the activity that the user has questions about
-                    const activity = await fetchAPublishedActivityById(activityInQuestion);
+                    const activity = await fetchAnActivityById(activityInQuestion);
 
                     // If the fetch was unsuccessful, redirect with an error page
                     if (!activity) errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
@@ -181,7 +181,7 @@ router.post('/sign-up', async (req, res) => {
         // Ensure only valid activities were submitted
         selectedActivities.forEach(async activity => {
             try {
-                if (!fetchAPublishedActivityById(activity)) return errors.push({ msg: 'Please submit valid activities. '});
+                if (!fetchAnActivityById(activity)) return errors.push({ msg: 'Please submit valid activities. '});
             } catch (e) {
                 // If the fetch was unsuccessful, redirect with an error page
                 errorRedirect(req, res, e, '/');

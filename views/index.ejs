@@ -17,7 +17,7 @@
         </div>
     <% } else { %>
         <div class="row">
-            <p>Want to create your own activity posts, speed up the activity sign-up process, save and see the activities you signed up for, and/or change your RSVPs? <a href="/users/register">REGISTER</a> for an account or <a href="/users/login">LOG IN</a>!</p>
+            <p>Want to create your own activity posts, speed up the activity sign-up process, save and see the activities you signed up for, and/or change your RSVPs? <%- include ("./partials/register_btn"); %> for an account or <%- include ("./partials/login_btn"); %>!</p>
         </div>
     <% } %>
     
