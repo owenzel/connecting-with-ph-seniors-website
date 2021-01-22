@@ -86,7 +86,7 @@ router.post('/register', forwardAuthenticated, (req, res) => {
                         // Save the new user to the database
                         newUser.save()
                             .then(user => {
-                                // If an email was entered, send a registration confirmation email to the newly registered user
+                                // If an email was entered, create a registration confirmation email
                                 if (email) {
                                     const emailContent = {
                                         from: `${process.env.EMAIL}`,
@@ -98,6 +98,7 @@ router.post('/register', forwardAuthenticated, (req, res) => {
                                             `
                                     };
                                 
+                                    // Send the registration confirmation email to the newly registered user
                                     transporter.sendMail(emailContent, (e, data) => {
                                         if (e) {
                                             console.log(e);

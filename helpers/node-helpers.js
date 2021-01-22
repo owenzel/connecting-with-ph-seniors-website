@@ -1,5 +1,6 @@
 const transporter = require('../config/email');
 const { formatDate } = require('./ejs-helpers');
+const Activity = require('./../models/Activity');
 
 module.exports = {
     activityEmail: async function(emailTitle, recipient, activities) {
@@ -29,5 +30,35 @@ module.exports = {
                 return true;
             }
         });
+    },
+    fetchPublishedActivites: async function() {
+        try {
+            const activities = await Activity.find({ status:{ $in:[ 'published', 'published and under review' ] } })
+                .populate('leaderUser')
+                .populate('creatorUser')
+                .sort({ date: 'asc', time: 'asc' })
+                .lean();
+            return activities;
+        } catch (e) {
+            console.log(e);
+            return null;
+        }
+    },
+    fetchAPublishedActivityById: async function(id) {
+        try {
+            const activity = await Activity.findOne({ _id: id })
+                .populate('leaderUser')
+                .populate('creatorUser')
+                .lean();
+            return activity;
+        } catch (e) {
+            console.log(e);
+            return null;
+        }
+    },
+    errorRedirect: function(req, res, error, redirect, msg = "We're sorry. Something went wrong.") {
+        console.log(error);
+        req.flash('error_msg', msg);
+        res.redirect(`${redirect}`);
     }
 }

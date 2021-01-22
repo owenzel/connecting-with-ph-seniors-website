@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const transporter = require('./../config/email');
-const { activityEmail } = require('../helpers/node-helpers');
-
-const Activity = require('../models/Activity');
+const { activityEmail, fetchPublishedActivites, fetchAPublishedActivityById, errorRedirect } = require('../helpers/node-helpers');
 const User = require('./../models/User');
+const Activity = require('./../models/Activity');
 
 const questionCategories = [{ text: 'A Specific Activity', value: 'activity' }, { text: 'Using the Website', value: 'website' }, { text: 'Something Else', value: 'other' }];
 
@@ -12,19 +11,19 @@ const questionCategories = [{ text: 'A Specific Activity', value: 'activity' }, 
 // @route   GET /
 router.get('/', async (req, res) => {
     try {
-        const activities = await Activity.find({ status:{ $in:[ 'published', 'published and under review' ] } })
-            .populate('leaderUser')
-            .populate('creatorUser')
-            .sort({ date: 'asc', time: 'asc' })
-            .lean();
+        // Get all published activities
+        const activities = await fetchPublishedActivites();
         
-        res.render('index', {
-            activities
-        });
+        // Render the home page with the published activities
+        if (activites) {
+            res.render('index', {
+                activities
+            });
+        } else {
+            errorRedirect(req, res, 'Fetch was unsuccessful.', '/questions');
+        }
     } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "We're sorry. Something went wrong.");
-        res.redirect('/');
+        errorRedirect(req, res, e, '/questions');
     }
 });
 
@@ -37,7 +36,10 @@ router.get('/questions', async (req, res) => {
 // @desc    Process questions form
 // @route   POST /questions
 router.post('/questions', async (req, res) => {
+    // Get submitted fields from the question form
     let { categoriesWereSubmitted, categories, name, email, phone, questions, activityInQuestion } = req.body;
+
+    // Store any errors in validating the form submission
     let errors = [];
     
     // Handle the user submitting part 1 of the form
@@ -45,38 +47,46 @@ router.post('/questions', async (req, res) => {
         // Ensure the user selected at least one category
         if (!categories) {
             errors.push({ msg: 'Please select at least one question category. '})
+        }
+        
         // Ensure categories is an array
-        } else if (!Array.isArray(categories)) {
+        if (!Array.isArray(categories)) {
             categories = [ categories ];
         }
 
-        // If there are any errors, re-render the page with alerts to the user. Otherwise, render the page with part 2 of the form
+        // If there are any errors, re-render the page with alerts to the user.
         if (errors.length > 0) {
             res.render('questions', {
                 errors,
                 questionCategories
             });
-        } else {
+        }
+
+        // If there are no errors, render the page with part 2 of the form
+        else {
             let activities = null;
             // If the user has a question about a specific activity, get the activity leaders
-            if (categories.find(category => category === 'activity')) {
+            if (categories.find(category => category == 'activity')) {
                 try {
-                    const activities = await Activity.find({ status:{ $in:[ 'published', 'published and under review' ] } })
-                        .populate('leaderUser')
-                        .populate('creatorUser')
-                        .sort({ date: 'asc', time: 'asc' })
-                        .lean();
+                    // Get the published activities
+                    const activities = await fetchPublishedActivites();
 
-                    res.render('questions', { 
-                        questionCategories: null,
-                        activities,
-                    });
+                    if (activities) {
+                        // Render the questions page with the published activities
+                        res.render('questions', { 
+                            questionCategories: null,
+                            activities,
+                        });
+                    } else {
+                        errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
+                    }
                 } catch (e) {
-                    console.log(e);
-                    req.flash('error_msg', "We're sorry. Something went wrong.");
-                    res.redirect('/');
+                    errorRedirect(req, res, e, '/');
                 }
-            } else {
+            } 
+            
+            // If the user doesn't have a question about a specific activity, render the questions page without activities
+            else {
                 res.render('questions', { 
                     questionCategories: null,
                     activities,
@@ -91,38 +101,36 @@ router.post('/questions', async (req, res) => {
             // Create a string of the email recipients
             let emailRecipients = "";
             
-            // Find the admin users and add them to the email recipients
+            // Find the admin users and add them to the email recipients (if they have an email)
             const adminUsers = await User.find({ admin: true }).lean();
-
             adminUsers.forEach(admin => {
                 if (admin.email.includes('@')) {
                     emailRecipients += `${admin.email},`;
                 }
             });
 
-            // If there are questions about activities, find the associated creators and leaders and add them to the email recipients
+            // If there are questions about activities, find the associated creators and leaders and add them to the email recipients (if they have an email)
             if (activityInQuestion) {
                 try {
-                    const activity = await Activity.findOne({ _id: activityInQuestion })
-                        .populate('leaderUser')
-                        .populate('creatorUser')
-                        .lean();
+                    const activity = await fetchAPublishedActivityById(activityInQuestion);
 
-                    if (!activity.creatorUser.admin && activity.creatorUser.email.includes('@')) {
-                        emailRecipients += `${activity.creatorUser.email},`;
-                    }
-                    if (activity.leaderUser && !activity.leaderUser.admin && (activity.creatorUser._id != activity.leaderUser._id) && activity.leaderUser.email.includes('@')) {
-                        emailRecipients += `${activity.leaderUser.email},`;
+                    if (activity) {
+                        if (!activity.creatorUser.admin && activity.creatorUser.email.includes('@')) {
+                            emailRecipients += `${activity.creatorUser.email},`;
+                        }
+                        if (activity.leaderUser && !activity.leaderUser.admin && (activity.creatorUser._id != activity.leaderUser._id) && activity.leaderUser.email.includes('@')) {
+                            emailRecipients += `${activity.leaderUser.email},`;
+                        }
+                    } else {
+                        errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
                     }
 
                 } catch (e) {
-                    console.log(e);
-                    req.flash('error_msg', "We're sorry. Something went wrong.");
-                    res.redirect('/');
+                    errorRedirect(req, res, e, '/');
                 }
             }
     
-            //Create and send an email with the question(s)
+            //Create an email with the question(s)
             const emailContent = {
                 from: `${process.env.EMAIL}`,
                 to: `${emailRecipients}`,
@@ -137,20 +145,17 @@ router.post('/questions', async (req, res) => {
                     `
             };
     
+            // Send the email with the questions
             transporter.sendMail(emailContent, (e, data) => {
                 if (e) {
-                    console.log(e);
-                    req.flash('error_msg', "We're sorry. Something went wrong. Your questions were not submitted.");
-                    res.redirect('/');
+                    errorRedirect(req, res, e, '/');
                 } else {
                     req.flash('success_msg', 'Your questions were successfully submitted!');
                     res.redirect('/');
                 }
             });
         } catch (e) {
-            console.log(e);
-            req.flash('error_msg', "We're sorry. Something went wrong.");
-            res.redirect('/');
+            errorRedirect(req, res, e, '/');
         }
     }
 });
@@ -159,27 +164,30 @@ router.post('/questions', async (req, res) => {
 // @route   GET /sign-up
 router.get('/sign-up', async (req, res) => {
     try {
-        const activities = await Activity.find({ status:{ $in:[ 'published', 'published and under review' ] } })
-            .populate('leaderUser')
-            .populate('creatorUser')
-            .sort({ date: 'asc', time: 'asc' })
-            .lean();
-        
-        res.render('sign-up', {
-            user: req.user,
-            activities
-        });
+        // Get all published activities
+        const activities = await fetchPublishedActivites();
+
+        if (activities) {
+            // Render the sign up page with the published activities
+            res.render('sign-up', {
+                user: req.user,
+                activities
+            });
+        } else {
+            errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
+        }
     } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "We're sorry. Something went wrong.");
-        res.redirect('/');
+        errorRedirect(req, res, e, '/');
     }
 });
 
 // @desc    Process activities sign-up form
 // @route   POST /sign-up
 router.post('/sign-up', async (req, res) => {
+    // Get submitted fields from the sign up form
     let { name, email, phone, selectedActivities } = req.body;
+
+    // Store any errors in validating the form submission
     let errors = [];
 
     // Check required fields
@@ -189,20 +197,18 @@ router.post('/sign-up', async (req, res) => {
 
     // Make sure all submitted activities are valid
     if (selectedActivities) {
-        // Make selectedActivities an array if only one activity was selected
+        // Ensure selected activities is an arry
         if (!Array.isArray(selectedActivities)) {
             selectedActivities = [ selectedActivities ];
         }
 
         selectedActivities.forEach(async activity => {
             try {
-                if (!await Activity.findOne({ status:{ $in:[ 'published', 'published and under review' ] } }).lean()) {
-                    errors.push({ msg: 'Please submit valid activities. '});
+                if (!await Activity.findOne({ _id: activity, status:{ $in:[ 'published', 'published and under review' ] } }).lean()) {
+                    return errors.push({ msg: 'Please submit valid activities. '});
                 }
             } catch (e) {
-                console.log(e);
-                req.flash('error_msg', "We're sorry. Something went wrong.");
-                res.redirect('/');
+                errorRedirect(req, res, e, '/');
             }
         });
     }
@@ -210,28 +216,28 @@ router.post('/sign-up', async (req, res) => {
     // If there are errors, re-render the page with the errors
     if (errors.length > 0) {
         try {
-            const activities = await Activity.find({ status:{ $in:[ 'published', 'published and under review' ] } })
-                .populate('leaderUser')
-                .populate('creatorUser')
-                .sort({ createdAt: 'desc' })
-                .lean();
+            const activities = await fetchPublishedActivites();
             
-            res.render('sign-up', {
-                user: req.user,
-                activities,
-                errors
-            });
+            if (activities) {
+                res.render('sign-up', {
+                    user: req.user,
+                    activities,
+                    errors
+                });
+            } else {
+                errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
+            }
         } catch (e) {
-            console.log(e);
-            req.flash('error_msg', "We're sorry. Something went wrong.");
-            res.redirect('/');
+            errorRedirect(req, res, e, '/');
         }
-    } else { // Validation passed
-        // Update the activities with the RSVPs
+    } 
+    // If there are no errors, proceed with submitting the RSVPs
+    else {
         try {
+            // Update the activities with the RSVPs
             const signedUpActivities = await Activity.find({ _id:{ $in:selectedActivities } })
-            .populate('leaderUser')
-            .lean();
+                .populate('leaderUser')
+                .lean();
         
             signedUpActivities.forEach(async activity => {
                 if (!activity.rsvps.find(rsvp => rsvp.email == email)) {
@@ -243,17 +249,15 @@ router.post('/sign-up', async (req, res) => {
                         };
                         await Activity.updateOne({ _id: activity }, { $push: { rsvps: newRsvp } });
                     } catch (e) {
-                        console.log(e);
-                        req.flash('error_msg', "We're sorry. Something went wrong.");
-                        res.redirect('/');
+                        errorRedirect(req, res, e, '/');
                     }
                 } else {
-                    req.flash('error_msg', `A user with this email is already signed up for ${activity.title}! Please try again!`);
-                    res.redirect(`/`);
+                    const errorMsg = `A user with this email is already signed up for ${activity.title}! Please try again!`;
+                    errorRedirect(req, res, errorMsg, '/', errorMsg);
                 }
             });
 
-            // Clear the activity sign up cart
+            // Clear the Sign Up Cart in the user's session
             req.session.signUps = [];
 
             // Send an email to the user with all the activities they signed up for
@@ -261,17 +265,13 @@ router.post('/sign-up', async (req, res) => {
             const success = await activityEmail(emailTitle, req.user.email, signedUpActivities);
 
             if (success) {
-                // Clear the Sign Up Cart in the user's session
                 req.flash('success_msg', 'You are successfully signed up!');
                 res.redirect('/');
             } else {
-                req.flash('error_msg', "We're sorry. Something went wrong.");
-                res.redirect('/');
+                errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
             }
-        } catch (err) {
-            console.log(err);
-            req.flash('error_msg', "We're sorry. Something went wrong.");
-            res.redirect('/');
+        } catch (e) {
+            errorRedirect(req, res, e, '/');
         }
     }
 });
