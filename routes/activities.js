@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
 const { formatDate } = require('../helpers/ejs-helpers');
-const { activityEmail } = require('../helpers/node-helpers');
+const { activityEmail, fetchPublishedActivites, fetchAPublishedActivityById, fetchUsers, errorRedirect } = require('../helpers/node-helpers');
 const transporter = require('./../config/email');
 
 const User = require('./../models/User');
@@ -12,11 +12,12 @@ const Activity = require('../models/Activity');
 // @route   GET /activities/my-activities
 router.get('/my-activities', ensureAuthenticated, async (req, res) => {
     try {
-        const activities = await Activity.find({ })
-            .populate('leaderUser')
-            .populate('creatorUser')
-            .sort({ date: 'asc', time: 'asc' })
-            .lean();
+        // Fetch the published activities
+        const activities = await fetchPublishedActivites();
+
+        if (!activities) {
+            errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
+        }
 
         let activitiesCreated = [];
         let activitiesLeading = [];
@@ -52,11 +53,9 @@ router.get('/my-activities', ensureAuthenticated, async (req, res) => {
             activitiesAttending,
             activitiesToReview
         });
-
+        
     } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "We're sorry. Something went wrong.");
-        res.redirect('/');
+        errorRedirect(req, res, e, '/');
     }
 });
 
@@ -64,26 +63,25 @@ router.get('/my-activities', ensureAuthenticated, async (req, res) => {
 // @route   POST /activities/email-activities
 router.post('/email-activities', ensureAuthenticated, async (req, res) => {
     try {
-        const activities = await Activity.find({})
-            .populate('leaderUser')
-            .sort({ date: 'asc', time: 'asc' })
-            .lean();
+        // Fetch the published activities
+        const activities = await fetchPublishedActivites();
+
+        if (!activities) {
+            errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
+        }
 
         const emailTitle = `Upcoming Activities on Connecting With Parma Heights Seniors - Virtual Events as of ${formatDate(Date.now(), 'MMMM Do YYYY, h:mm a')}`;
 
         const success = await activityEmail(emailTitle, req.user.email, activities);
-        
+
         if (success) {
             req.flash('success_msg', 'The email with upcoming activities was successfully sent.');
             res.redirect('/');
         } else {
-            req.flash('error_msg', "We're sorry. Something went wrong.");
-            res.redirect('/');
+            errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
         }
     } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "We're sorry. Something went wrong.");
-        res.redirect('/');
+        errorRedirect(req, res, e, '/');
     }
 });
 
@@ -91,14 +89,17 @@ router.post('/email-activities', ensureAuthenticated, async (req, res) => {
 // @route   GET /activities/create
 router.get('/create', ensureAuthenticated, async (req, res) => {
     try {
-        const users = await User.find({}).lean();
+        // Fetch all users
+        const users = await fetchUsers();
+        if (!user) {
+            errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
+        }
+
         res.render('activities/create', { 
             users 
         });
     } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "We're sorry. Something went wrong.");
-        res.redirect('/');
+        errorRedirect(req, res, e, '/');
     }
 });
 
@@ -124,24 +125,24 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
                 errors.push({ msg: 'The Activity Leader Username does not exist. Please select a valid leader name.' });
             }
         } catch (e) {
-            console.log(e);
-            req.flash('error_msg', "We're sorry. Something went wrong.");
-            res.redirect('/');
+            errorRedirect(req, res, e, '/');
         }
     }
 
     // If there are errors, re-render the page with the errors and entered information passed in
     if (errors.length > 0) {
         try {
-            const users = await User.find({}).lean();
-            res.render('activities/create', {
-                errors,
-                users
-            });
+            const users = await fetchUsers();
+            if (user) {
+                res.render('activities/create', {
+                    errors,
+                    users 
+                });
+            } else {
+                errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
+            }
         } catch (e) {
-            console.log(e);
-            req.flash('error_msg', "We're sorry. Something went wrong.");
-            res.redirect('/');
+            errorRedirect(req, res, e, '/');
         }
     } else { // Validation passed
         // Create and save the new activity (to be reviewed)
@@ -176,9 +177,7 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
                 
                     transporter.sendMail(emailContent, (e, data) => {
                         if (e) {
-                            console.log(e);
-                            req.flash('error_msg', "We're sorry. Something went wrong. Please check the table below to see if your activity was submitted for review. If you do not see it, please try again.");
-                            res.redirect('/activities/my-activities');
+                            errorRedirect(req, res, e, '/activities/my-activities', "We're sorry. Something went wrong. Please check the table below to see if your activity was submitted for review. If you do not see it, please try again.");
                         } else {
                             // Redirect to the my activities page with a success message
                             req.flash('success_msg', 'The activity was successfully submitted for review.');
@@ -192,9 +191,7 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
                 }
             })
             .catch(e => {
-                console.log(e);
-                req.flash('error_msg', "We're sorry. Something went wrong.");
-                res.redirect('/');
+                errorRedirect(req, res, e, '/');
             });
     }
 });
@@ -203,15 +200,11 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
 // @route   GET /activities/:id
 router.get('/:id', async (req, res) => {
     try {
-        let activity = await Activity.findById(req.params.id)
-            .populate('leaderUser')
-            .populate('creatorUser')
-            .lean();
+        const activity = await fetchAPublishedActivityById(req.params.id);
         
         // If the requested activity does not exist, redirect them and throw an error
         if (!activity) {
-            req.flash('error_msg', "This activity could not be found.");
-            res.redirect('/');
+            errorRedirect(req, res, 'Fetch was unsuccessful.', '/', "This activity could not be found.");
         }
 
         // If this is a published activity or it is not published but the user still has access, render a page displaying information about the activity
@@ -221,16 +214,13 @@ router.get('/:id', async (req, res) => {
             });
         // If the user is attempting to view an activity under review that they don't have access to, redirect them and throw an error
         } else {
-            req.flash('error_msg', "You do not have permission to view this unpublished activity.");
-            res.redirect('/');
+            errorRedirect(req, res, "The user does not have permission to view this unpublished activity.", '/', "You do not have permission to view this unpublished activity.");
         }
 
         // If the requested activity does exist, render a page with the activity information
         
     } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "This activity could not be found.");
-        res.redirect('/');
+        errorRedirect(req, res, e, '/', "This activity could not be found.");
     }
 });
 
@@ -238,7 +228,13 @@ router.get('/:id', async (req, res) => {
 // @route   POST /activities/:id/sign-up
 router.post('/:id/sign-up', async (req, res) => {
     try {
-        const activity = await Activity.findById(req.params.id).lean();
+        const activity = await fetchAPublishedActivityById(req.params.id);
+
+        // If the requested activity does not exist, redirect them and throw an error
+        if (!activity) {
+            errorRedirect(req, res, 'Fetch was unsuccessful.', '/', "This activity could not be found.");
+        }
+
         const cartItem = { _id: activity._id, title: activity.title };
 
         if (!req.session.signUps) {
@@ -257,9 +253,7 @@ router.post('/:id/sign-up', async (req, res) => {
         }
         
     } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "This activity could not be found.");
-        res.redirect('/');
+        errorRedirect(req, res, e, '/', "This activity could not be found.");
     }
 });
 
@@ -267,9 +261,7 @@ router.post('/:id/sign-up', async (req, res) => {
 // @route   DELETE /activities/:id/sign-up
 router.delete('/:id/sign-up', async (req, res) => {
     if (req.session.signUps) {
-        console.log('req.session.signUps', req.session.signUps);
         const index = req.session.signUps.findIndex(signUp => req.params.id == signUp._id);
-        console.log('index', index);
         if (index != -1) {
             req.session.signUps.splice(index, 1);
         }
@@ -277,8 +269,7 @@ router.delete('/:id/sign-up', async (req, res) => {
         req.flash('success_msg', "The activity was successfully removed from your Sign Up Cart!");
         res.redirect('/');
     } else {
-        req.flash('error_msg', "We're sorry. Something went wrong.");
-        res.redirect('/');
+        errorRedirect(req, res, "The user does not have a session and/or the signUps property of their session.", '/');
     }
 });
 
@@ -286,13 +277,15 @@ router.delete('/:id/sign-up', async (req, res) => {
 // @route   GET /activities/:id/rsvps
 router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
     try {
-        const activity = await Activity.findById(req.params.id).lean();
-        const users = await User.find({}).lean();
+        const activity = await fetchAPublishedActivityById(req.params.id);
+        const users = await fetchUsers();
         
         // If the requested activity does not exist, redirect them and throw an error
         if (!activity) {
-            req.flash('error_msg', "This activity could not be found.");
-            res.redirect('/my-activities');
+            const errorMsg = "This activity could not be found.";
+            errorRedirect(req, res, errorMsg, '/', errorMsg);
+        } else if (!users) {
+            errorRedirect(req, res, "Error with fetching users.", '/');
         }
 
         // If the user is an admin or has access to this activity, render a page with the list of RSVPs
@@ -303,13 +296,10 @@ router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
             });
         // If a user is attempting to view the RSVPs for an activity that do not have access to, redirect them with an error message
         } else {
-            req.flash('error_msg', "You do not have permission to edit this activity.");
-            res.redirect('/');
+            errorRedirect(req, res, "The user does not have permission to view this unpublished activity.", '/', "You do not have permission to view this unpublished activity.");
         }
     } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "This activity could not be found.");
-        res.redirect('/');
+        errorRedirect(req, res, e, '/', "This activity could not be found.");
     }
 });
 
@@ -326,12 +316,11 @@ router.put('/:id/rsvps', ensureAuthenticated, async (req, res) => {
 
     // Make sure the selected activity was valid
     try {
-        const activity = await Activity.findOne({ _id: req.params.id }).lean();
+        const activity = await fetchAPublishedActivityById(req.params.id);
 
         if (!activity) {
-            console.log(e);
-            req.flash('error_msg', "We're sorry. Something went wrong.");
-            res.redirect('/');
+            const errorMsg = "This activity could not be found.";
+            errorRedirect(req, res, errorMsg, '/', errorMsg);
         }
 
         // If there are errors, re-render the page with the errors
@@ -360,21 +349,17 @@ router.put('/:id/rsvps', ensureAuthenticated, async (req, res) => {
                     req.flash('success_msg', 'This RSVP was successfully submitted!');
                     res.redirect('/activities/my-activities');
                 } catch (e) {
-                    console.log(e);
-                    req.flash('error_msg', "We're sorry. Something went wrong.");
-                    res.redirect('/');
+                    errorRedirect(req, res, e, '/');
                 }
             }
             // If the new RSVP has already signed up for this activity, redirect the user with an error
             else {
-                req.flash('error_msg', "A user with this email is already signed up for this activity!");
-                res.redirect('/activities/my-activities');
+                const errorMsg = "A user with this email is already signed up for this activity!";
+                errorRedirect(req, res, errorMsg, '/activities/my-activities', errorMsg);
             }
         }
     } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "We're sorry. Something went wrong.");
-        res.redirect('/');
+        errorRedirect(req, res, e, '/activities/my-activities');
     }
 });
 
@@ -382,12 +367,12 @@ router.put('/:id/rsvps', ensureAuthenticated, async (req, res) => {
 // @route   PUT /activities/:id/cancel
 router.delete('/:id/:userEmail/rsvp', ensureAuthenticated, async (req, res) => {
     try {
-        let activity = await Activity.findById(req.params.id).lean();
+        let activity = await fetchAPublishedActivityById(req.params.id);
 
         // If the requested activity does not exist, redirect the user with an error message
         if (!activity) {
-            req.flash('error_msg', "This activity could not be found.");
-            res.redirect('/');
+            const errorMsg = "This activity could not be found.";
+            errorRedirect(req, res, errorMsg, '/', errorMsg);
         }
 
         // If the requested does exist, find this user's RSVP and change it to not going (if the RSVP exists)
@@ -401,18 +386,13 @@ router.delete('/:id/:userEmail/rsvp', ensureAuthenticated, async (req, res) => {
                 req.flash('success_msg', 'You have successfully canceled the RSVP.');
                 res.redirect('/activities/my-activities');
             } catch (e) {
-                console.log(e);
-                req.flash('error_msg', "We're sorry. Something went wrong.");
-                res.redirect('/');
+                errorRedirect(req, res, e, '/');
             }
         } else {
-            req.flash('error_msg', "You were not RSVP'd to this activity.");
-            res.redirect('/');
+            errorRedirect(req, res, "The user was not RSVP'd to this activity.", '/', "You were not RSVP'd to this activity.");
         }
     } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "This activity could not be found.");
-        res.redirect('/activities/my-activities');
+        errorRedirect(req, res, e, '/activities/my-activities', "This activity could not be found.");
     }
 });
 
@@ -445,9 +425,7 @@ router.post('/:id/email-rsvps', ensureAuthenticated, async (req, res) => {
 
     transporter.sendMail(emailContent, (e, data) => {
         if (e) {
-            console.log(e);
-            req.flash('error_msg', "We're sorry. Something went wrong. Your questions were not submitted.");
-            res.redirect('/');
+            errorRedirect(req, res, e, '/', "We're sorry. Something went wrong. Your message may not have been sent.");
         } else {
             req.flash('success_msg', 'Your message was successfully sent!');
             res.redirect('/activities/my-activities');
@@ -459,14 +437,12 @@ router.post('/:id/email-rsvps', ensureAuthenticated, async (req, res) => {
 // @route   GET /activities/edit/:id
 router.get('/:id/edit', ensureAuthenticated, async (req, res) => {
     try {
-        const activity = await Activity.findOne({_id: req.params.id})
-            .populate('leaderUser')
-            .lean();
+        const activity = await fetchAPublishedActivityById(req.params.id);
     
         // If the requested activity does not exist, redirect the user with an error message
         if (!activity) {
-            req.flash('error_msg', "This activity could not be found.");
-            res.redirect('/');
+            const errorMsg = "This activity could not be found.";
+            errorRedirect(req, res, errorMsg, '/', errorMsg);
         }
     
         // If the user is an admin or has access to this activity, render the edit page
@@ -476,13 +452,10 @@ router.get('/:id/edit', ensureAuthenticated, async (req, res) => {
             });
         // If a user is attempting to edit an activity that do not have access to, redirect them with an error message
         } else {
-            req.flash('error_msg', "You do not have permission to edit this activity.");
-            res.redirect('/');
+            errorRedirect(req, res, "The user does not have permission to edit this activity.", '/', "You do not have permission to edit this activity.");
         }
     } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "We're sorry. Something went wrong.");
-        res.redirect('/');
+        errorRedirect(req, res,e, '/');
     }
     
 });
@@ -493,12 +466,12 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
     const { title, body } = req.body;
 
     try {
-        let activity = await Activity.findById(req.params.id).lean();
+        let activity = await fetchAPublishedActivityById(req.params.id);
 
         // If the requested activity does not exist, redirect the user with an error message
         if (!activity) {
-            req.flash('error_msg', "This activity could not be found.");
-            res.redirect('/');
+            const errorMsg = "This activity could not be found.";
+            errorRedirect(req, res, errorMsg, '/', errorMsg);
         }
 
         // If the user is an admin or has access to this activity, update it
@@ -540,12 +513,10 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
 
         // If a user is attempting to edit an activity that do not have access to, redirect them with an error message
         } else {
-            req.flash('error_msg', "You do not have permission to edit this activity.");
-            res.redirect('/');
+            errorRedirect(req, res, "The user does not have permission to edit this activity.", '/', "You do not have permission to edit this activity.");
         }
     } catch (e) {
-        console.log(e);
-        res.redirect('/activities/my-activities');
+        errorRedirect(req, res, e, '/activities/my-activities');
     }
 });
 
@@ -587,13 +558,10 @@ router.post('/:id/approve', ensureAuthenticated, async (req, res) => {
                 res.redirect('/activities/my-activities');
             });
         } catch (e) {
-            console.log(e);
-            req.flash('error_msg', "We're sorry. Something went wrong.");
-            res.redirect('/');
+            errorRedirect(req, res, e, '/');
         }
     } else {
-        req.flash('error_msg', "You do not have permission to publish this activity.");
-        res.redirect('/');
+        errorRedirect(req, res, "The user does not have permission to publish this activity.", '/', "You do not have permission to publish this activity.");
     }
 });
 
@@ -604,12 +572,12 @@ router.post('/:id/reject', ensureAuthenticated, async (req, res) => {
     if (req.user.admin) {
         try {
             // Find the activity to delete
-            const activity = await Activity.findOne({ _id: req.params.id }).lean();
+            const activity = await fetchAPublishedActivityById(req.params.id);
             
             // Ensure the activity to delete exists; otherwise redirect with an error
             if (!activity) {
-                req.flash('error_msg', "The requested activity does not exist.");
-                res.redirect('/activities/my-activities');
+                const errorMsg = "This activity could not be found.";
+                errorRedirect(req, res, errorMsg, '/activities/my-activities', errorMsg);
             } else {
                 // Delete the activity and send an email
                 try {
@@ -648,19 +616,14 @@ router.post('/:id/reject', ensureAuthenticated, async (req, res) => {
                         res.redirect('/activities/my-activities');
                     });
                 } catch (e) {
-                    console.log(e);
-                    req.flash('error_msg', "We're sorry. Something went wrong.");
-                    res.redirect('/activities/my-activities');
+                    errorRedirect(req, res, e, '/activities/my-activities');
                 }
             }
         } catch (e) {
-            console.log(e);
-            req.flash('error_msg', "We're sorry. Something went wrong.");
-            res.redirect('/activities/my-activities');
+            errorRedirect(req, res, e, '/activities/my-activities');
         }
     } else {
-        req.flash('error_msg', "You do not have permission to reject this activity for publication.");
-        res.redirect('/');
+        errorRedirect(req, res, "The user does not have permission to reject this activity for publication.", '/', "You do not have permission to reject this activity for publication.");
     }
 });
 
@@ -672,9 +635,7 @@ router.delete('/:id', ensureAuthenticated, async (req, res) => {
         req.flash('success_msg', 'The activity was successfully deleted.');
         res.redirect('/activities/my-activities');
     } catch (e) {
-        console.log(e);
-        req.flash('error_msg', "We're sorry. Something went wrong.");
-        res.redirect('/');
+        errorRedirect(req, res, e, '/');
     }
 });
 

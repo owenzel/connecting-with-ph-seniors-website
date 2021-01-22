@@ -1,6 +1,7 @@
 const transporter = require('../config/email');
 const { formatDate } = require('./ejs-helpers');
 const Activity = require('./../models/Activity');
+const User = require('./../models/User');
 
 module.exports = {
     activityEmail: async function(emailTitle, recipient, activities) {
@@ -51,6 +52,15 @@ module.exports = {
                 .populate('creatorUser')
                 .lean();
             return activity;
+        } catch (e) {
+            console.log(e);
+            return null;
+        }
+    },
+    fetchUsers: async function() {
+        try {
+            const users = await User.find({}).lean();
+            return users;
         } catch (e) {
             console.log(e);
             return null;

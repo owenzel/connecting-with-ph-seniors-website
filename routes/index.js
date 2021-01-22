@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
         const activities = await fetchPublishedActivites();
         
         // Render the home page with the published activities
-        if (activites) {
+        if (activities) {
             res.render('index', {
                 activities
             });
