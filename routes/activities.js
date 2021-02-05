@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
 const { formatDate } = require('../helpers/ejs-helpers');
-const { activityEmail, fetchPublishedActivites, fetchAnActivityById, fetchUsers, errorRedirect, successRedirect } = require('../helpers/node-helpers');
+const { activityEmail, fetchActivites, fetchAnActivityById, fetchUsers, errorRedirect, successRedirect } = require('../helpers/node-helpers');
 const transporter = require('./../config/email');
 const User = require('./../models/User');
 const Activity = require('../models/Activity');
@@ -12,7 +12,7 @@ const Activity = require('../models/Activity');
 router.get('/my-activities', ensureAuthenticated, async (req, res) => {
     try {
         // Fetch the published activities
-        const activities = await fetchPublishedActivites();
+        const activities = await fetchActivites();
 
         // If the fetch was unsuccessful, redirect with an error
         if (!activities) errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
@@ -46,12 +46,12 @@ router.get('/my-activities', ensureAuthenticated, async (req, res) => {
     }
 });
 
-// @desc    Send email of all activities to the logged in user
+// @desc    Send email of all published activities to the logged in user
 // @route   POST /activities/email-activities
 router.post('/email-activities', ensureAuthenticated, async (req, res) => {
     try {
         // Fetch the published activities
-        const activities = await fetchPublishedActivites();
+        const activities = await fetchActivites(true);
 
         // If the fetch was unsuccessful, redirect with an error page
         if (!activities) errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
@@ -79,7 +79,7 @@ router.get('/create', ensureAuthenticated, async (req, res) => {
         const users = await fetchUsers();
 
         // If the fetch was unsuccessful, redirect with an error page
-        if (!user) errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
+        if (!users) errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
 
         // Render the create activities page
         res.render('activities/create', { users });
@@ -176,10 +176,7 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
                 });
             }
             // If the user submitting the activity is an admin, redirect the user with a success message
-            else {
-                // Redirect to the my activities page with a success message
-                successRedirect(req, res, 'The activity was successfully published.', '/activities/my-activities');
-            }
+            else successRedirect(req, res, 'The activity was successfully published.', '/activities/my-activities');
         })
         // If there was an error, redirect the user with an error message
         .catch(e => {
@@ -239,7 +236,7 @@ router.post('/:id/sign-up', async (req, res) => {
             successRedirect(req, res, "The activity was successfully added to your Sign Up Cart!", '/');
         }
         // If the user already has the requested activity in their session Sign Up cart, redirect them with an appropriate message
-        successRedirect(req, res, "The activity is already in your Sign Up Cart!", '/');
+        else successRedirect(req, res, "The activity is already in your Sign Up Cart!", '/');
     } catch (e) {
         // If the fetch was unsuccessful, redirect them with an error message
         errorRedirect(req, res, e, '/', "This activity could not be found.");

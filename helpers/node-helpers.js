@@ -8,13 +8,15 @@ module.exports = {
     activityEmail: async function(emailTitle, recipient, activities) {
         let messageBody = `<h2>${emailTitle}</h2>`;
         let counter = 1;
-        activities.forEach(activity => {
-            messageBody += `<h3>${counter}. <b>${activity.title}</b></h3>
-                    <p><b>Occurs at:</b> ${formatDate(activity.date, 'MMMM Do YYYY, h:mm a')}</p>
-                    <p><b>Leader:</b> ${activity.leaderUser ? activity.leaderUser.name : activity.leaderName}</p>
-                    <p><b>Description:</b> ${activity.body}</p>`;
-            counter++;
-        });
+        if (activities.length > 0) {
+            activities.forEach(activity => {
+                messageBody += `<h3>${counter}. <b>${activity.title}</b></h3>
+                        <p><b>Occurs at:</b> ${formatDate(activity.date, 'MMMM Do YYYY, h:mm a')}</p>
+                        <p><b>Leader:</b> ${activity.leaderUser ? activity.leaderUser.name : activity.leaderName}</p>
+                        <p><b>Description:</b> ${activity.body}</p>`;
+                counter++;
+            }); 
+        } else messageBody += `<h3>No upcoming activities have been posted yet!</h3>`
     
         const emailContent = {
             from: `${process.env.EMAIL}`,
@@ -34,10 +36,10 @@ module.exports = {
             return false;
         }
     },
-    // Fetch and return all published activities from the database
-    fetchPublishedActivites: async function() {
+    // Fetch and return all activities from the database (or only the published ones if desired)
+    fetchActivites: async function(published=false) {
         try {
-            const activities = await Activity.find({ status:{ $in:[ 'published', 'published and under review' ] } })
+            const activities = await Activity.find(published ? { status:{ $in:[ 'published', 'published and under review' ] } } : {})
                 .populate('leaderUser')
                 .populate('creatorUser')
                 .sort({ date: 'asc', time: 'asc' })

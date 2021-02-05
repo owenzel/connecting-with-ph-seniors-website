@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const transporter = require('./../config/email');
-const { activityEmail, fetchPublishedActivites, fetchAnActivityById, errorRedirect, successRedirect } = require('../helpers/node-helpers');
+const { activityEmail, fetchActivites, fetchAnActivityById, errorRedirect, successRedirect } = require('../helpers/node-helpers');
 const User = require('./../models/User');
 const Activity = require('./../models/Activity');
 
@@ -16,7 +16,7 @@ const questionCategories = [
 router.get('/', async (req, res) => {
     try {
         // Get all published activities
-        const activities = await fetchPublishedActivites();
+        const activities = await fetchActivites(true);
         
         // If the fetch was unsuccessful, redirect with an error page
         if (!activities) errorRedirect(req, res, 'Fetch was unsuccessful.', '/questions');
@@ -63,7 +63,7 @@ router.post('/questions', async (req, res) => {
         if (categories.find(category => category == 'activity')) {
             try {
                 // Get the published activities
-                const activities = await fetchPublishedActivites();
+                const activities = await fetchActivites(true);
 
                 // If the fetch was unsuccessful, redirect with an error page
                 if (!activities) errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
@@ -148,7 +148,7 @@ router.post('/questions', async (req, res) => {
 router.get('/sign-up', async (req, res) => {
     try {
         // Get all published activities
-        const activities = await fetchPublishedActivites();
+        const activities = await fetchActivites(true);
 
         // If the fetch was unsuccessful, redirect with an error page
         if (!activities) errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
@@ -193,7 +193,7 @@ router.post('/sign-up', async (req, res) => {
     if (errors.length > 0) {
         try {
             // Fetch the published activities
-            const activities = await fetchPublishedActivites();
+            const activities = await fetchActivites(true);
             
             // If the fetch was unsuccessful, redirect with an error page
             if (!activities) errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
