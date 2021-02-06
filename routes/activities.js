@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
 const { formatDate } = require('../helpers/ejs-helpers');
-const { activityEmail, fetchActivites, fetchAnActivityById, fetchUsers, errorRedirect, successRedirect } = require('../helpers/node-helpers');
+const { websiteUrl, activityEmail, fetchActivites, fetchAnActivityById, fetchUsers, errorRedirect, successRedirect } = require('../helpers/node-helpers');
 const transporter = require('./../config/email');
 const User = require('./../models/User');
 const Activity = require('../models/Activity');
@@ -161,8 +161,8 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
                     to: `${process.env.EMAIL_ADMIN}`,
                     subject: `Activity Submitted for Review on Connecting With Parma Heights Seniors - Virtual Events`,
                     html: `
-                            <p>A new activity was submitted by ${req.user.name}. Log in to <a href="${process.env.WEBSITE}/activities/my-activities"> Connecting With Parma Heights Seniors - Virtual Activities website</a> to review and approve it for publication.</p>
-                            <p>Website: ${process.env.WEBSITE}/activities/my-activities</p>
+                            <p>A new activity was submitted by ${req.user.name}. Log in to <a href="${websiteUrl}/activities/my-activities"> Connecting With Parma Heights Seniors - Virtual Activities website</a> to review and approve it for publication.</p>
+                            <p>Website: ${websiteUrl}/activities/my-activities</p>
                         `
                 };
             
@@ -488,8 +488,8 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
                 to: `${process.env.EMAIL_ADMIN}`,
                 subject: `Activity Edited on Connecting With Parma Heights Seniors - Virtual Events`,
                 html: `
-                        <p>A published activity called ${req.body.title} was edited by ${req.user.name}. Log in to <a href="${process.env.WEBSITE}/activities/${req.params.id}"> Connecting With Parma Heights Seniors - Virtual Activities website</a> to view it.</p>
-                        <p>Website: ${process.env.WEBSITE}/activities/${req.params.id}</p>
+                        <p>A published activity called ${req.body.title} was edited by ${req.user.name}. Log in to <a href="${websiteUrl}/activities/${req.params.id}"> Connecting With Parma Heights Seniors - Virtual Activities website</a> to view it.</p>
+                        <p>Website: ${websiteUrl}/activities/${req.params.id}</p>
                     `
             };
         
@@ -540,8 +540,8 @@ router.post('/:id/approve', ensureAuthenticated, async (req, res) => {
             to: `${emailRecipients}`,
             subject: `Activity Approved on Connecting With Parma Heights Seniors - Virtual Events`,
             html: `
-                    <p>Congratulations! Your new submission or your edits for the activity called "${activity.title}" were approved for publication on Connecting With Parma Heights Seniors - Virtual Events. Other users may view it and sign up. Log in to <a href="${process.env.WEBSITE}/activities/${req.params.id}"> Connecting With Parma Heights Seniors - Virtual Activities website</a> to view it.</p>
-                    <p>Website: ${process.env.WEBSITE}/activities/${req.params.id}</p>
+                    <p>Congratulations! Your new submission or your edits for the activity called "${activity.title}" were approved for publication on Connecting With Parma Heights Seniors - Virtual Events. Other users may view it and sign up. Log in to <a href="${websiteUrl}/activities/${req.params.id}"> Connecting With Parma Heights Seniors - Virtual Activities website</a> to view it.</p>
+                    <p>Website: ${websiteUrl}/activities/${req.params.id}</p>
                 `
         };
     

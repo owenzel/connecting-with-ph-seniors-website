@@ -5,6 +5,7 @@ const User = require('./../models/User');
 
 module.exports = {
     // Send an email with the details of given activities to given recipients
+    website: 'https://connecting-with-older-adults.herokuapp.com',
     activityEmail: async function(emailTitle, recipient, activities) {
         let messageBody = `<h2>${emailTitle}</h2>`;
         let counter = 1;

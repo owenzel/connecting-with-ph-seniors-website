@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
 const transporter = require('./../config/email');
-const { successRedirect } = require('../helpers/node-helpers');
+const { websiteUrl, successRedirect } = require('../helpers/node-helpers');
 const User = require('./../models/User');
 
 // @desc    Show register page
@@ -80,8 +80,8 @@ router.post('/register', forwardAuthenticated, (req, res) => {
                                         to: `${email}`,
                                         subject: `Registered on Connecting With Parma Heights Seniors - Virtual Activities`,
                                         html: `
-                                                <p>An account with this email and the username ${username} was registered on <a href="${process.env.WEBSITE}/">Connecting with Parma Heights Seniors - Virtual Activities</a>.</p>
-                                                <p>Website: ${process.env.WEBSITE}/</p>
+                                                <p>An account with this email and the username ${username} was registered on <a href="${websiteUrl}/">Connecting with Parma Heights Seniors - Virtual Activities</a>.</p>
+                                                <p>Website: ${websiteUrl}/</p>
                                             `
                                     };
                                 
