@@ -4,8 +4,7 @@
   "description": "Web App for Connecting with Parma Heights Seniors",
   "main": "app.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node app",
-    "dev": "cross-env NODE_ENV=development nodemon app"
+    "start": "node app.js"
   },
   "keywords": [],
   "author": "Olivia Wenzel",
