@@ -93,13 +93,13 @@ router.get('/create', ensureAuthenticated, async (req, res) => {
 // @route   POST /activities/create
 router.post('/create', ensureAuthenticated, async (req, res) => {
     // Get submitted fields from the create activity form
-    const { title, date, time, leaderName, leaderUsername, body } = req.body;
+    const { title, date, time, occurs, leaderName, leaderUsername, body } = req.body;
 
     // Store any errors in validating the form submission
     let errors = [];
 
     // Check required fields
-    if (!title || !date || !time || !leaderName || !body) errors.push({ msg: 'Please fill in all fields (Activity Leader Username is optional but strongly recommended if they have an account).' });
+    if (!title || !date || !time || !occurs || !leaderName || !body) errors.push({ msg: 'Please fill in all fields (Activity Leader Username is optional but strongly recommended if they have an account).' });
     
     // If a username for an activity leader was entered, find them
     let leaderUser = null;
@@ -133,6 +133,10 @@ router.post('/create', ensureAuthenticated, async (req, res) => {
             errorRedirect(req, res, e, '/');
         }
     }
+
+    // occurs.forEach(occurrence => {
+        
+    // })
 
     // If there are no errors, create and save the new activity (to be reviewed)
     const expirationDate = new Date(date);
