@@ -4,19 +4,19 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const { ensureAuthenticated, forwardAuthenticated } = require('../middleware/auth');
 const transporter = require('./../config/email');
-const { websiteUrl, successRedirect } = require('../helpers/node-helpers');
+const { websiteUrl, successRedirect, errorRedirect } = require('../helpers/node-helpers');
 const User = require('./../models/User');
 
 // @desc    Show register page
 // @route   GET /users/register
 router.get('/register', forwardAuthenticated, (req, res) => {
-    res.render('users/register');
+    return res.render('users/register');
 });
 
 // @desc    Show login page
 // @route   GET /users/login
 router.get('/login', forwardAuthenticated, (req, res) => {
-    res.render('users/login');
+    return res.render('users/login');
 });
 
 // @desc    Process register form
@@ -41,7 +41,7 @@ router.post('/register', forwardAuthenticated, (req, res) => {
     if (password.length < 6) errors.push({ msg: 'Password should be at least 6 characters in length.' });
 
     // If there are errors, re-render the page with the errors and entered information passed in
-    if (errors.length > 0) reRenderWithErrors();
+    if (errors.length > 0) return reRenderWithErrors();
 
     // If there were no erros in validating the form submission, proceed with registering the user
     else {
@@ -49,7 +49,7 @@ router.post('/register', forwardAuthenticated, (req, res) => {
             // If the username is already taken, re-render with an error.
             if (user) {
                 errors.push({ msg: 'Username is not available.'});
-                reRenderWithErrors();
+                return reRenderWithErrors();
             }
             // If the username isn't already taken, proceed with saving them to the database
             else {
@@ -64,9 +64,10 @@ router.post('/register', forwardAuthenticated, (req, res) => {
                 });
 
                 // Hash the password
-                bcrypt.genSalt(10, (err, salt) =>
-                    bcrypt.hash(newUser.password, salt, (err, hash) => {
-                        if (err) throw err;
+                bcrypt.genSalt(10, (e, salt) =>
+                    bcrypt.hash(newUser.password, salt, (e, hash) => {
+                        if (e) return errorRedirect(req, res, e, '/users/login', 'There was an error registering. Please try again.');
+                        
                         // Set the new user's password to the hashed one
                         newUser.password = hash;
 
@@ -121,10 +122,13 @@ router.get('/logout', ensureAuthenticated, (req, res) => {
     req.session.signUps = [];
 
     // Log the user out via passport
-    req.logout();
-
-    // Redirect to the login page with a success message
-    successRedirect(req, res, 'You are logged out.', '/users/login');
+    req.logout((e) => {
+        const redirect = '/users/login';
+        if (e) return errorRedirect(req, res, e, redirect, 'There was an error logging out. Please try again.');
+        
+        // Redirect to the login page with a success message
+        return successRedirect(req, res, 'You are logged out.', redirect);
+    });
 });
 
 module.exports = router;

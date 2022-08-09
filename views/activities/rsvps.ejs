@@ -1,7 +1,5 @@
 <div class="container">
-    <div class="row">
-        <h3>RSVP(s) for <%= activity.title %></h3>
-    </div>
+    <h3>RSVP(s) for <%= activity.title %></h3>
 
     <% if (activity.rsvps.length > 0) { %>
         <div class="section">
@@ -12,7 +10,7 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>Phone Number</th>
-                            <th><!-- Delete button --></th>
+                            <th><!-- Empty space for delete button --></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -122,7 +120,7 @@
                     </div>
                 </div>
 
-                <ul class="collapsible">
+                <ul class="collapsible" style="margin-bottom:1cm;">
                     <li>
                       <div class="collapsible-header">By clicking "Add RSVP", you certify that the person you're signing up agrees to these terms. (Click here to see the terms.)</div>
                       <div class="collapsible-body"><span><%- include("./../partials/waiver_text"); %></span></div>
@@ -140,7 +138,7 @@
 
     <div class="section">
         <% if (user) { %>
-            <%- include ("./../partials/my_activities_btn"); %>
+            <span style="margin-right:0.3cm;"><%- include ("./../partials/my_activities_btn"); %></span>
         <% } %>
         <%- include ("./../partials/home_btn"); %>
     </div>

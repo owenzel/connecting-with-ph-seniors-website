@@ -29,7 +29,7 @@
                             <th>Occurs On</th>
                             <th>Leader's Name</th>
                             <th>Description</th>
-                            <th><!-- Approve or Reject Buttons --></th>
+                            <th><!-- Empty Space for approve or reject Buttons --></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -71,7 +71,7 @@
                         <th>Publication Status</th>
                         <th>Leader's Name</th>
                         <th>RSVPs</th>
-                        <th><!--Edit and delete buttons--></th>
+                        <th><!-- Empty space for edit and delete buttons --></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,7 +85,7 @@
                                 <a href="/activities/<%= activity._id %>/rsvps">Click here to see, modify, or contact the <%= activity.rsvps.length %> RSVP(s).</a>
                             </td>
                             <td>
-                                <!--If the activity has been published, they may edit it. Otherwise, they may only delete it.-->
+                                <!-- If the activity has been published, they may edit it. Otherwise, they may only delete it. -->
                                 <% if (activity.status !== 'unpublished and under review') { %>
                                     <%- editIcon(activity.creatorUser, user, activity._id, false) %>
                                 <% } %>
@@ -146,7 +146,7 @@
                         <th>Title</th>
                         <th>Occurs At</th>
                         <th>Leader Name</th>
-                        <th><!--Cancel RSVP button--></th>
+                        <th><!-- Empty space for cancel RSVP button --></th>
                     </tr>
                 </thead>
                 <tbody>

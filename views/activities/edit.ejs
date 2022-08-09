@@ -1,5 +1,5 @@
 <div class="container">
-    <h3>Edit an Activity Post</h3>
+    <h3 style="margin-bottom:0.8cm;">Edit an Activity Post</h3>
 
     <p>Any edits that you submit will be automatically published, and website administrators will be notified of them. You will receive an email (if you registered with one) when your edited post has been reviewed. You can view the publication status of this activity in your <a href="/activities/my-activities">My Activities</a> page.</p>
     <p>At this time, you cannot make edits to the date, time, or leader. If you would like to make those changes, please submit a question to the website administrators, make note of any changes in the description, or delete this activity and create a new one.</p>
@@ -20,8 +20,7 @@
 
             <div class="row">
                 <div class="input-field">
-                    <h5>Describe the Activity.</h5>
-                    <!-- <textarea id="body" name="body"></textarea> -->
+                    <h5  style="margin-bottom:0.3cm;">Describe the Activity.</h5>
                     <div id="editor" name="editor"><%- activity.body %></div>
                 </div>
             </div>
@@ -29,7 +28,7 @@
             <input type="hidden" name="body">
 
             <div class="row">
-                <button type="submit" class="btn"><i class="fas fa-check"></i> <%= user.admin ? 'Publish Edits' : 'Submit Edits for Review' %></button>
+                <button type="submit" class="btn" style="margin-right:0.3cm;"><i class="fas fa-check"></i> <%= user.admin ? 'Publish Edits' : 'Submit Edits for Review' %></button>
                 <a href="/activities/my-activities" class="btn orange"><i class="fas fa-times-circle"></i> Cancel</a>
             </div>
         </form>

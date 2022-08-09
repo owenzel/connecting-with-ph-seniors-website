@@ -1,7 +1,7 @@
 <% const availableDates = getDateRangeStartingToday(2, 0, 0, 0); %>
 
 <div class="container">
-    <h3>Create an Activity Post</h3>
+    <h3 style="margin-bottom:0.8cm;">Create an Activity Post</h3>
     <p>Newly created activities are reviewed by website administrators before they are published. You will receive an email (if you registered with one) after your submission has been reviewed. You can also view the publication status of this activity in your <a href="/activities/my-activities">My Activities</a> page after you submit it.</p>
     <div class="row">
         <form action="/activities/create" method="POST" class="col s12" id="activityForm">
@@ -38,18 +38,6 @@
                 </div>
             </div>
 
-            <!-- <div class="row">
-                <div class="input-field">
-                    <select id="occurs" name="occurs">
-                        <option value="1" selected>This activity only occurs once in the month.</option>
-                        <% for (let i = 2; i < 5; i++) { %>
-                            <option value="<%= i %>">This activity occurs <%= i %> time in the month on the same day and time each week.</option>
-                          <% } %>
-                        </select>
-                        <label>How Many Times Does This Activity Repeat?</label>
-                  </div>
-              </div> -->
-
             <div class="row">
                 <div class="input-field">
                     <input
@@ -74,8 +62,7 @@
 
             <div class="row">
                 <div class="input-field">
-                    <h5>Describe the Activity.</h5>
-                    <!-- <textarea id="body" name="body"></textarea> -->
+                    <h5 style="margin-bottom:0.3cm;">Describe the Activity.</h5>
                     <div id="editor" name="editor"></div>
                 </div>
             </div>
@@ -83,7 +70,7 @@
             <input type="hidden" name="body">
 
             <div class="row">
-                <button type="submit" class="btn"><i class="fas fa-check"></i> <%= user.admin ? 'Publish' : 'Submit for Review' %></button>
+                <button type="submit" class="btn" style="margin-right:0.3cm;"><i class="fas fa-check"></i> <%= user.admin ? 'Publish' : 'Submit for Review' %></button>
                 <a href="/activities/my-activities" class="btn orange"><i class="fas fa-times-circle"></i> Cancel</a>
             </div>
         </form>

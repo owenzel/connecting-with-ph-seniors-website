@@ -19,21 +19,21 @@ router.get('/', async (req, res) => {
         const activities = await fetchActivites(true);
         
         // If the fetch was unsuccessful, redirect with an error page
-        if (!activities) errorRedirect(req, res, 'Fetch was unsuccessful.', '/questions');
+        if (!activities) return errorRedirect(req, res, 'Fetch was unsuccessful.', '/questions');
 
         // Render the home page with the published activities
-        res.render('index', { activities });
+        return res.render('index', { activities });
     }
     catch (e) {
         // If the fetch was unsuccessful, redirect with an error page
-        errorRedirect(req, res, e, '/questions');
+        return errorRedirect(req, res, e, '/questions');
     }
 });
 
 // @desc    Show questions page (for users to send questions to admin)
 // @route   GET /questions
 router.get('/questions', async (req, res) => {
-    res.render('questions', { questionCategories });
+    return res.render('questions', { questionCategories });
 });
 
 // @desc    Process questions form
@@ -54,7 +54,7 @@ router.post('/questions', async (req, res) => {
         if (!Array.isArray(categories)) categories = [ categories ];
 
         // If there are any errors, re-render the page with alerts to the user.
-        if (errors.length > 0) res.render('questions', { errors, questionCategories });
+        if (errors.length > 0) return res.render('questions', { errors, questionCategories });
 
         // If there are no errors, render the page with part 2 of the form
         let activities = null;
@@ -66,18 +66,18 @@ router.post('/questions', async (req, res) => {
                 const activities = await fetchActivites(true);
 
                 // If the fetch was unsuccessful, redirect with an error page
-                if (!activities) errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
+                if (!activities) return errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
 
                 // Render the questions page with the published activities
-                res.render('questions', { questionCategories: null, activities });
+                return res.render('questions', { questionCategories: null, activities });
 
             } catch (e) {
                 // If the fetch was unsuccessful, redirect with an error page
-                errorRedirect(req, res, e, '/');
+                return errorRedirect(req, res, e, '/');
             }
         } 
         // If the user doesn't have a question about a specific activity, render the questions page without activities
-        else res.render('questions', { questionCategories: null, activities });
+        else return res.render('questions', { questionCategories: null, activities });
     }
     // Handle the user submitting part 2 of the form
     else {
@@ -98,7 +98,7 @@ router.post('/questions', async (req, res) => {
                     const activity = await fetchAnActivityById(activityInQuestion);
 
                     // If the fetch was unsuccessful, redirect with an error page
-                    if (!activity) errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
+                    if (!activity) return errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
 
                     // Find the associated creators and leaders and add them to the email recipients (if they have an email)
                     if (!activity.creatorUser.admin && activity.creatorUser.email.includes('@')) {
@@ -109,7 +109,7 @@ router.post('/questions', async (req, res) => {
                     }
                 } catch (e) {
                     // If the fetch was unsuccessful, redirect with an error page
-                    errorRedirect(req, res, e, '/', "We're sorry. Your questions were not received. Please try again.");
+                    return errorRedirect(req, res, e, '/', "We're sorry. Your questions were not received. Please try again.");
                 }
             }
     
@@ -131,14 +131,14 @@ router.post('/questions', async (req, res) => {
             // Send the email with the questions
             transporter.sendMail(emailContent, (e, data) => {
                 // If there was an error sending the email, redirect with an error message
-                if (e) errorRedirect(req, res, e, '/', "We're sorry. Your questions were not received. Please try again.");
+                if (e) return errorRedirect(req, res, e, '/', "We're sorry. Your questions were not received. Please try again.");
                 
                 // If there wasn't an error sending the email, redirect the user with a success message
-                successRedirect(req, res, 'Your questions were successfully submitted!', '/');
+                return successRedirect(req, res, 'Your questions were successfully submitted!', '/');
             });
         } catch (e) {
             // If the fetch was unsuccessful, redirect with an error page
-            errorRedirect(req, res, e, '/');
+            return errorRedirect(req, res, e, '/');
         }
     }
 });
@@ -151,13 +151,13 @@ router.get('/sign-up', async (req, res) => {
         const activities = await fetchActivites(true);
 
         // If the fetch was unsuccessful, redirect with an error page
-        if (!activities) errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
+        if (!activities) return errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
 
         // Render the sign up page with the published activities
-        res.render('sign-up', { user: req.user, activities });
+        return res.render('sign-up', { user: req.user, activities });
     } catch (e) {
         // If the fetch was unsuccessful, redirect with an error page
-        errorRedirect(req, res, e, '/');
+        return errorRedirect(req, res, e, '/');
     }
 });
 
@@ -184,7 +184,7 @@ router.post('/sign-up', async (req, res) => {
                 if (!fetchAnActivityById(activity)) return errors.push({ msg: 'Please submit valid activities. '});
             } catch (e) {
                 // If the fetch was unsuccessful, redirect with an error page
-                errorRedirect(req, res, e, '/');
+                return errorRedirect(req, res, e, '/');
             }
         });
     }
@@ -196,13 +196,13 @@ router.post('/sign-up', async (req, res) => {
             const activities = await fetchActivites(true);
             
             // If the fetch was unsuccessful, redirect with an error page
-            if (!activities) errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
+            if (!activities) return errorRedirect(req, res, 'Fetch was unsuccessful.', '/');
 
             // Re-render the sign up page with the errors
-            res.render('sign-up', { user: req.user, activities, errors });
+            return res.render('sign-up', { user: req.user, activities, errors });
         } catch (e) {
             // If the fetch was unsuccessful, redirect with an error page
-            errorRedirect(req, res, e, '/');
+            return errorRedirect(req, res, e, '/');
         }
     } 
     // If there are no errors, proceed with submitting the RSVPs
@@ -216,7 +216,7 @@ router.post('/sign-up', async (req, res) => {
                 // If the user is signed up for one of the activities they submitted in the sign up, redirect them with an error
                 if (activity.rsvps.find(rsvp => rsvp.email == email)) {
                     const errorMsg = `A user with this email is already signed up for ${activity.title}! Please try again!`;
-                    errorRedirect(req, res, errorMsg, '/', errorMsg);
+                    return errorRedirect(req, res, errorMsg, '/', errorMsg);
                 }
 
                 // If the user is not signed up for the given activity, create an RSVP and save it to the database
@@ -229,7 +229,7 @@ router.post('/sign-up', async (req, res) => {
                     await Activity.updateOne({ _id: activity }, { $push: { rsvps: newRsvp } });
                 } catch (e) {
                     // If there was an error updating the RSVPs, redirect with an error message
-                    errorRedirect(req, res, e, '/');
+                    return errorRedirect(req, res, e, '/');
                 }
             });
 
@@ -241,9 +241,9 @@ router.post('/sign-up', async (req, res) => {
             await activityEmail(emailTitle, req.user.email, signedUpActivities);
 
             // Redirect with a success message
-            successRedirect(req, res, 'You are successfully signed up!', '/');
+            return successRedirect(req, res, 'You are successfully signed up!', '/');
         } catch (e) {
-            errorRedirect(req, res, e, '/');
+            return errorRedirect(req, res, e, '/');
         }
     }
 });

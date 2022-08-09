@@ -4,13 +4,9 @@
     <% if (user) { %>
         <div class="row">
             <% if (activity.status == 'published' || activity.status == 'published and under review' || user.admin) { %>
-                <div class="col">
-                    <%- editIcon(activity.creatorUser, user, activity._id, false) %>
-                </div>
+                <span style="margin-right:0.3cm;"><%- editIcon(activity.creatorUser, user, activity._id, false) %></span>
             <% } %>
-            <div class="col">
-                <%- deleteBtn(activity.creatorUser, user, activity._id) %>
-            </div>
+            <%- deleteBtn(activity.creatorUser, user, activity._id) %>
         </div>
     <% } %>
     

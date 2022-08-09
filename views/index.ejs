@@ -17,7 +17,9 @@
         </div>
     <% } else { %>
         <div class="row">
-            <p>Want to create your own activity posts, speed up the activity sign-up process, save and see the activities you signed up for, and/or change your RSVPs? <%- include ("./partials/register_btn"); %> for an account or <%- include ("./partials/login_btn"); %>!</p>
+            <div class="col">
+                <p>Want to create your own activity posts, speed up the activity sign-up process, save and see the activities you signed up for, and/or change your RSVPs? <%- include ("./partials/register_btn"); %> OR <%- include ("./partials/login_btn"); %></p>
+            </div>
         </div>
     <% } %>
     
@@ -32,7 +34,6 @@
                             <% } %>
                         </div>
                         <div class="card-content center-align">
-                            <% console.log(`./../public/images/${activity.imageName}`); %>
                             <img width="100px" src="/images/placeholder.png" alt="Balloons">
                             <h5><%= stripTags(truncate(activity.title, 150)) %></h5>
                             <p><%= stripTags(truncate(activity.body, 150)) %></p>
@@ -60,7 +61,9 @@
                 </div>
         <% }); %>
         <% if (activities.length === 0) { %>
+            <div class="col">
                 <p>There are no activities to sign up for at the moment. Please check again later!</p>
+            </div>
         <% } %>
     </div>
 </div>
