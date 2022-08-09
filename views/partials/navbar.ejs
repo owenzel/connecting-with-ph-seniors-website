@@ -2,7 +2,7 @@
 <ul id="signUpDropdown" class="dropdown-content">
     <div id="cart">
         <li class="cart-item">
-            <h5><b>Sign Up Cart:</b></h5>
+            <h5 style="margin-bottom:0.4cm;"><b>Sign Up Cart:</b></h5>
         </li>
         <% if (signUps && signUps.length > 0) { %>
             <% signUps.forEach(activity => { %>
@@ -10,7 +10,7 @@
                     <form action="/activities/<%= activity._id %>/sign-up" method="POST">
                         <input type="hidden" name="_method" value="DELETE">
                         <div class="row">
-                            <%= activity.title %>
+                            <span style="margin-right:0.2cm;"><%= activity.title %></span>
                             <button type="submit" class="btn red">X</button>
                         </div>
                     </form>
@@ -20,7 +20,7 @@
         <% } else { %>
             <li class="cart-item">Your cart is empty.</li>
         <% } %>
-        <li class="cart-item" style="margin-bottom:0.3cm;"><a class="btn white-text" href="/sign-up">Proceed to Sign Up</a></li>
+        <li class="cart-item" style="margin-bottom:0.3cm;"><button class="btn white-text" href="/sign-up">Proceed to Sign Up</button></li>
     </div>
 </ul>
 

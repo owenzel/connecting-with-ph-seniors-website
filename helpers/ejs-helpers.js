@@ -58,7 +58,7 @@ module.exports = {
             return `<button data-target="confirm-delete-modal" class="waves-effect waves-light btn red modal-trigger"><i class="fas fa-trash"></i> Delete</button>
                     <div id="confirm-delete-modal" class="modal">
                         <div class="modal-content">
-                            <h4 style="margin-bottom:0.8cm;">Are you sure you want to delete this activity?</h4>
+                            <h4 class="page-header">Are you sure you want to delete this activity?</h4>
                             <form action="/activities/${activityId}" method="POST" id="delete-form">
                                 <input type="hidden" name="_method" value="DELETE">
                                 <button type="button" href="#!" class="modal-close waves-effect waves-green btn-flat">No, I do not want to delete this activity.</button>
@@ -76,7 +76,7 @@ module.exports = {
             return `<button data-target="confirm-cancel-modal" class="btn red modal-trigger">${btnText}</button>
                     <div id="confirm-cancel-modal" class="modal">
                         <div class="modal-content">
-                            <h4 style="margin-bottom:0.8cm;">Are you sure you want to cancel this RSVP?</h4>
+                            <h4 class="page-header">Are you sure you want to cancel this RSVP?</h4>
                             <form action="/activities/${activityId}/${userEmail}/rsvp" method="POST">
                                 <input type="hidden" name="_method" value="DELETE">
                                 <button type="button" href="#!" class="modal-close waves-effect waves-green btn-flat">No, I do not want to cancel this RSVP.</button>
@@ -94,7 +94,7 @@ module.exports = {
             return `<button data-target="confirm-approve-modal" class="btn modal-trigger">Approve</button>
                     <div id="confirm-approve-modal" class="modal">
                         <div class="modal-content">
-                            <h4 style="margin-bottom:0.8cm;">Are you sure you want to approve this activity for publication?</h4>
+                            <h4 class="page-header">Are you sure you want to approve this activity for publication?</h4>
                             <form action="/activities/${activityId}/approve" method="POST">
                                 <button type="button" href="#!" class="modal-close waves-effect waves-green btn-flat">No, I do not want to APPROVE this yet.</button>
                                 <button type="submit" class="modal-close waves-effect waves-green btn-flat">Yes, I want to APPROVE this.</button>
@@ -111,7 +111,7 @@ module.exports = {
             return `<button data-target="confirm-reject-modal" class="btn red modal-trigger">Reject</button>
                     <div id="confirm-reject-modal" class="modal">
                         <div class="modal-content">
-                            <h4 style="margin-bottom:0.8cm;">Are you sure you want to reject this activity for publication?</h4>
+                            <h4 class="page-header">Are you sure you want to reject this activity for publication?</h4>
                             <form action="/activities/${activityId}/reject" method="POST">
                                 <div class="input-field">
                                     <input type="text" name="feedback" placeholder="Enter Your Reasons For Rejecting This">
