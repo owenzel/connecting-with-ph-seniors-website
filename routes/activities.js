@@ -195,7 +195,7 @@ router.get('/:id', async (req, res) => {
         if (!activity) return errorRedirect(req, res, 'Fetch was unsuccessful.', '/', "This activity could not be found.");
 
         // If this is a published activity or it is not published but the user still has access, render a page displaying information about the activity
-        if (activity.status == 'published' || activity.status == 'published and under review' || (activity.status == 'unpublished and under review' && (req.user.admin || req.user.id == activity.creatorUser._id || req.user.id == activity.leaderUser._id))) {
+        if (activity.status == 'published' || activity.status == 'published and under review' || (activity.status == 'unpublished and under review' && (req.user.admin || req.user.id == activity.creatorUser._id || (activity.leaderUser && req.user.id == activity.leaderUser._id)))) {
             return res.render('activities/show', { activity });
         }
 
@@ -277,7 +277,7 @@ router.get('/:id/rsvps', ensureAuthenticated, async (req, res) => {
         if (!users) return errorRedirect(req, res, "Error with fetching users.", '/');
 
         // If the user is an admin or has access to this activity, render a page with the list of RSVPs
-        if (req.user.admin || activity.creatorUser == req.user.id || activity.leaderUser == req.user.id) return res.render('activities/rsvps', { activity, users });
+        if (req.user.admin || activity.creatorUser._id == req.user.id || (activity.leaderUser && activity.leaderUser._id == req.user.id)) return res.render('activities/rsvps', { activity, users });
 
         // If a user is attempting to view the RSVPs for an activity that do not have access to, redirect them with an error message
         return errorRedirect(req, res, "The user does not have permission to view this unpublished activity.", '/', "You do not have permission to view this unpublished activity.");
@@ -434,7 +434,7 @@ router.get('/:id/edit', ensureAuthenticated, async (req, res) => {
         }
     
         // If the user is an admin or has access to this activity, render the edit page
-        if (req.user.admin || ((activity.status == 'published' || activity.status == 'published and under review') && activity.creatorUser == req.user.id)) {
+        if (req.user.admin || ((activity.status == 'published' || activity.status == 'published and under review') && activity.creatorUser._id == req.user.id)) {
             return res.render('activities/edit', { activity });
         }
 
@@ -463,7 +463,7 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
         }
 
         // If the user is an admin or has access to this activity, update it
-        if (req.user.admin || activity.creatorUser == req.user.id) {
+        if (req.user.admin || activity.creatorUser._id == req.user.id) {
             activity = await Activity.findOneAndUpdate(
                 { 
                     _id: req.params.id 
@@ -636,7 +636,7 @@ router.delete('/:id', ensureAuthenticated, async (req, res) => {
         }
 
         // If the user is an admin or has access to this activity, delete it
-        if (req.user.admin || activity.creatorUser == req.user.id) {
+        if (req.user.admin || activity.creatorUser._id == req.user.id) {
             // Delete the requested activity based on the id in the URL
             await Activity.deleteOne({ _id: req.params.id });
 

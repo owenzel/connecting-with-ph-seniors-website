@@ -60,8 +60,8 @@ module.exports = {
                         <div class="modal-content">
                             <h4 class="page-header">Are you sure you want to delete this activity?</h4>
                             <form action="/activities/${activityId}" method="POST" id="delete-form">
-                                <input type="hidden" name="_method" value="DELETE">
                                 <button type="button" href="#!" class="modal-close waves-effect waves-green btn-flat">No, I do not want to delete this activity.</button>
+                                <input type="hidden" name="_method" value="DELETE">
                                 <button type="submit" class="modal-close waves-effect waves-green btn-flat">Yes, I want to delete this activity.</button>
                             </form>
                         </div>
